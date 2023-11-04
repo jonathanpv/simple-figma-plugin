@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Layout Helper</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 16px;
+      background: #f7f8fa;
+      color: #333;
+    }
+    #welcome {
+      margin-bottom: 24px;
+    }
+    button {
+      background-color: #18a0fb;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #1391e6;
+    }
+    button:active {
+      background-color: #0f81d0;
+    }
+
+    #output {
+      width: calc(100% - 32px);
+      height: 150px;
+      margin-top: 16px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #333;
+      background: #fff;
+    }
+
+    /* Styles for the copy button */
+    .button-container {
+      margin-top: 12px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .copy-button {
+      background-color: #4CAF50; /* A green color */
+      margin-left: 8px;
+    }
+
+    .copy-button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <div id="welcome">
+    <h1>Welcome to Layout Helper</h1>
+    <p>This takes your component and generates instructions for ChatGPT to make the code responsive with TailwindCSS, focusing only on the layout.</p>
+    <p><strong>Note:</strong> Content like SVGs are not loaded as making that into the actual code is very different for every use case.</p>
+  </div>
+  <button id="generate">Generate Layout Instructions</button>
+
+  <!-- Textarea for the output -->
+  <textarea id="output" readonly placeholder="Generated instructions will appear here..."></textarea>
+
+  <!-- Container for the copy button -->
+  <div class="button-container">
+    <!-- The copy button itself -->
+    <button id="copy" class="copy-button">Copy Instructions</button>
+  </div>
+
+
+  <script>
+    document.getElementById('generate').onclick = () => {
+      parent.postMessage({ pluginMessage: { type: 'generate-layout-instructions' } }, '*');
+    }
+
+    // Copy button event listener
+    document.getElementById('copy').onclick = () => {
+      // Select the text field
+      const output = document.getElementById('output');
+      output.select();
+      output.setSelectionRange(0, 99999); // For mobile devices
+
+      // Copy the text inside the text field
+      document.execCommand('copy');
+
+      // Alert the copied text
+      alert('Instructions copied to clipboard!');
+    };
+
+    // Listen for messages sent from the plugin to the UI
+    window.onmessage = event => {
+      const pluginMessage = event.data.pluginMessage;
+      if (pluginMessage.type === 'set-instructions') {
+        // Set the text in the output box
+        document.getElementById('output').value = pluginMessage.instructions;
+      }
+    };
+
+  </script>
+</body>
+</html>
