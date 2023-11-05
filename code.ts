@@ -158,7 +158,9 @@ figma.ui.onmessage = async msg => {
       type: 'set-instructions',
       instructions: cssString
     });
+  }
 
+  if (msg.type === 'generate-ai') {
     fetch('https://jsonplaceholder.typicode.com/posts/1')
       .then(res => res.json())
       .then(data => {
@@ -167,8 +169,6 @@ figma.ui.onmessage = async msg => {
           instructions: JSON.stringify(data)
         });
       });
-
-
   }
 
   // Make sure to close the plugin when you're done. Otherwise the plugin will

@@ -1,222 +1,319 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Layout Helper</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
-  
-    :root {
-      --button-color: #000;
-      --button-hover-color: #333;
-      --button-active-color: #666;
-      --input-focus-color: #000;
-      --border-color: #eaeaea;
-      --background-color: #f9f9f9;
-      --text-color: #333;
-      --font-family: 'Inter', sans-serif;
-      --box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
-  
-    body {
-      font-family: var(--font-family);
-      margin: 0;
-      padding: 20px;
-      background: #ffffff;
-      color: var(--text-color);
-      line-height: 1.6;
-    }
-  
-    h1 {
-      font-size: 28px;
-      color: var(--text-color);
-      font-weight: 600;
-    }
-  
-    p {
-      color: var(--text-color);
-    }
-  
-    .button {
-      background-color: var(--button-color);
-      color: #ffffff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: 600;
-      transition: background-color 0.3s, box-shadow 0.3s, transform 0.2s;
-    }
-  
-    .button:hover {
-      background-color: var(--button-hover-color);
-      transform: translateY(-2px);
-      box-shadow: var(--box-shadow);
-    }
-  
-    .button:active {
-      background-color: var(--button-active-color);
-      box-shadow: none;
-      transform: translateY(0);
-    }
-  
-    .output, .input-field {
-      width: 100%;
-      padding: 12px;
-      border-radius: 5px;
-      border: 1px solid var(--border-color);
-      background: #fff;
-      box-shadow: none;
-      transition: border-color 0.3s, box-shadow 0.3s;
-      resize: none;
-    }
-  
-    .input-field:focus, .output:focus {
-      border-color: var(--input-focus-color);
-      box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
-      outline: none;
-    }
-  
-    .label {
-      display: block;
-      margin-top: 20px;
-      color: var(--text-color);
-      font-size: 14px;
-    }
-  
-    .container {
-      background: var(--background-color);
-      padding: 25px;
-      border-radius: 5px;
-      box-shadow: var(--box-shadow);
-      margin-top: 20px;
-    }
-  
-    .container > button {
-      width: calc(100% - 48px); /* account for padding */
-      margin-top: 20px;
-    }
-  
-    .text-container {
-      margin-bottom: 20px;
-    }
-  
-    .button-container {
-      text-align: center; /* centering the copy button */
-      margin-top: 20px;
-    }
-  
-    .button-container .button {
-      display: inline-block; /* for better control over button width */
-      width: auto; /* auto width based on content */
-      margin-right: 10px; /* spacing between buttons */
-    }
-  
-    /* Handling last button margin */
-    .button-container .button:last-child {
-      margin-right: 0;
-    }
-  </style>
-</head>
+  <!DOCTYPE html>
+  <html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout Helper</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+      :root {
+        --button-color: #000;
+        --button-hover-color: #333;
+        --button-active-color: #666;
+        --input-focus-color: #000;
+        --border-color: #eaeaea;
+        --background-color: #f9f9f9;
+        --text-color: #333;
+        --font-family: 'Inter', sans-serif;
+        --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      }
+
+      body {
+        font-family: var(--font-family);
+        margin: 0;
+        padding: 20px;
+        background: #ffffff;
+        color: var(--text-color);
+        line-height: 1.6;
+      }
+
+      h1 {
+        font-size: 28px;
+        color: var(--text-color);
+        font-weight: 600;
+        margin-bottom: 20px;
+      }
+
+      p {
+        color: var(--text-color);
+        margin-bottom: 10px;
+      }
+
+      .button {
+        background-color: var(--button-color);
+        color: #ffffff;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 200;
+        transition: background-color 0.3s, box-shadow 0.3s, transform 0.2s;
+        margin-top: 20px;
+        width: 100%;
+      }
+
+      .button:hover {
+        background-color: var(--button-hover-color);
+        transform: translateY(-2px);
+        box-shadow: var(--box-shadow);
+      }
+
+      .button:active {
+        background-color: var(--button-active-color);
+        box-shadow: none;
+        transform: translateY(0);
+      }
+
+      .icon-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 16px;
+        font-size: 14px;
+        width: auto;
+        /* Adjust width as needed, or remove it to let the content define the size */
+        height: 40px;
+        /* Adjust height as needed */
+      }
+
+      .icon-button i {
+        stroke-width: 2;
+        /* Adjust the icon thickness */
+        width: 20px;
+        /* Adjust icon size */
+        height: 20px;
+        /* Adjust icon size */
+        margin-right: 8px;
+        /* Space between icon and text */
+      }
+
+      .output {
+        height: 120px;
+      }
+
+      .output,
+      .input-field {
+        width: 100%;
+        padding: 12px;
+        border-radius: 5px;
+        border: 1px solid var(--border-color);
+        background: #fff;
+        box-shadow: none;
+        transition: border-color 0.3s, box-shadow 0.3s;
+        resize: none;
+        margin-top: 15px;
+      }
+
+      .input-field:focus,
+      .output:focus {
+        border-color: var(--input-focus-color);
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+        outline: none;
+      }
+
+      .label {
+        display: block;
+        margin-top: 20px;
+        color: var(--text-color);
+        font-size: 14px;
+      }
+
+      .configuration-container>.input-field {
+        margin-top: 0px;
+      }
+
+      .text-container {
+        margin-bottom: 20px;
+      }
+
+      .button-container {
+        text-align: center;
+        /* centering the copy button */
+        margin-top: 20px;
+      }
+
+      .button-container .button {
+        display: inline-block;
+        /* for better control over button width */
+        width: auto;
+        /* auto width based on content */
+        margin-right: 10px;
+        /* spacing between buttons */
+      }
+
+      /* Handling last button margin */
+      .button-container .button:last-child {
+        margin-right: 0;
+      }
+
+      /* Divider */
+      hr {
+        border: none;
+        border-top: 1px solid var(--border-color);
+        margin: 20px 0;
+      }
+    </style>
+  </head>
+
 <body>
-  <div class="text-container">
-    <h1>Welcome to Layout Helper</h1>
-    <p>This tool generates instructions for ChatGPT to make code responsive with TailwindCSS, focusing only on the layout.</p>
-    <p><strong>Note:</strong> SVG content handling varies per case.</p>
-  </div>
+  <!DOCTYPE html>
+  <html lang="en">
 
-
-  <button id="generate" class="button">Generate Layout Instructions</button>
   
-  <!-- Textarea for the output -->
-  <textarea id="output" class="output" readonly placeholder="Generated instructions will appear here..."></textarea>
 
-  <!-- Container for the copy button -->
-  <div class="button-container">
-    <!-- The copy button itself -->
-    <button id="copy" class="button">Copy Instructions</button>
-  </div>
+  <body>
+    <div class="main">
+      <div class="text-container">
+        <h1>Welcome to Layout Helper</h1>
+        <p>This tool generates instructions for ChatGPT to make code responsive with TailwindCSS, focusing only on the
+          layout.</p>
+        <p><strong>Note:</strong> SVG content handling varies per case.</p>
+      </div>
 
-  <!-- Additional fields for user to fill in -->
-  <div id="container">
-    <label class="label">Azure Resource Name</label>
-    <input type="text" id="resourceName" class="input-field" placeholder="Enter Resource Name" />
-    <label class="label">Azure Deployment Name</label>
-    <input type="text" id="deploymentName" class="input-field" placeholder="Enter Deployment Name" />
-    <label class="label">Azure OpenAI APIKey </label>
-    <input type="password" id="apiKey" class="input-field" placeholder="Enter API Key" />
-  </div>
+      <hr>
 
-  <button id="save" class="button">Save Configuration</button>
+      <div class="generate-section">
+        <h3>Get the layout</h3>
+        <p>`generate()` button will recursively crawl your selected page and generate the layout css along with
+          description of the name/position/child id</p>
+        <div style="display:flex; flex-direction:row; gap: 60px;">
+          <button id="generate-layout" class="button">Generate Layout Instructions</button>
+          <button id="copy-layout" class="button icon-button">
+            <i data-feather="copy"></i>
+          </button>
+        </div>
+        <textarea id="output" class="output" readonly
+          placeholder="Generated instructions will appear here..."></textarea>
+      </div>
 
+      <hr>
 
-  <!-- Textarea for the openai output -->
-  <textarea id="openaioutput" class="output" readonly placeholder="Generated openai code will appear here..."></textarea>
+      <!-- Additional fields for user to fill in -->
+      <div class="configuration-container">
+        <h3>AI Configuration</h3>
+        <p>`save()` button will save your API key in localstorage so you don't have to get them from your ai portals
+          currently we only support Azure OpenAI but we plan on supporting multiple profiles, and other AI vendors like
+          Anthropic 100k</p>
 
+        <label class="label">Azure Resource Name</label>
+        <input type="text" id="resourceName" class="input-field" placeholder="Enter Resource Name" />
+        <label class="label">Azure Deployment Name</label>
+        <input type="text" id="deploymentName" class="input-field" placeholder="Enter Deployment Name" />
+        <label class="label">Azure OpenAI APIKey </label>
+        <input type="password" id="apiKey" class="input-field" placeholder="Enter API Key" />
+      </div>
 
+      <button id="save" class="button">Save Configuration</button>
 
-  <script>
-    document.getElementById('generate').onclick = () => {
-      parent.postMessage({ pluginMessage: { type: 'generate-layout-instructions' } }, '*');
-    }
+      <hr>
+      <div class="generate-ai-section">
+        <h3>Ask GPT</h3>
+        <p>`generateCode()` button will send your instructions to chatgpt, we recommend gpt4 32k for large, full app
+          designs, but component-by-component gpt3 does well</p>
+        <div style="display:flex; flex-direction:row; gap: 60px;">
+          <button id="generate-ai" class="button">AI Generate Code</button>
+          <button id="copy-ai" class="button icon-button">
+            <i data-feather="copy"></i>
+          </button>
 
-    // Copy button event listener
-    document.getElementById('copy').onclick = () => {
-      // Select the text field
-      const output = document.getElementById('output');
-      output.select();
-      output.setSelectionRange(0, 99999); // For mobile devices
-
-      // Copy the text inside the text field
-      document.execCommand('copy');
-
-      // Alert the copied text
-      alert('Instructions copied to clipboard!');
-    };
-
-
-  // Request the plugin to load settings when the UI is loaded
-  parent.postMessage({ pluginMessage: { type: 'load-settings' } }, '*');
-
-    // Listen for messages sent from the plugin to the UI
-    window.onmessage = event => {
-      const pluginMessage = event.data.pluginMessage;
-      if (pluginMessage.type === 'set-instructions') {
-        // Set the text in the output box
-        document.getElementById('output').value = pluginMessage.instructions;
+        </div>
+      </div>
+      <!-- Textarea for the openai output -->
+      <textarea id="openaioutput" class="output" readonly
+        placeholder="Generated openai code will appear here..."></textarea>
+    </div>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script>
+      feather.replace();
+      document.getElementById('generate-layout').onclick = () => {
+        parent.postMessage({ pluginMessage: { type: 'generate-layout-instructions' } }, '*');
       }
 
-      if (pluginMessage.type === 'set-openai') {
-        // Set the text in the output box
-        document.getElementById('openaioutput').value = pluginMessage.instructions;
+      // Copy button event listener
+      document.getElementById('copy-layout').onclick = () => {
+        // Select the text field
+        const output = document.getElementById('output');
+        output.select();
+        output.setSelectionRange(0, 99999); // For mobile devices
+
+        // Copy the text inside the text field
+        document.execCommand('copy');
+
+        // Alert the copied text
+        alert('Instructions copied to clipboard! You can put this straight into GPT or configure the API call in the extension and run it within our app!');
+      };
+
+      document.getElementById('generate-ai').onclick = () => {
+        parent.postMessage({ pluginMessage: { type: 'generate-ai' } }, '*');
       }
 
-      if (pluginMessage.type === 'load-settings') {
-        // If settings are received, set the input fields with these values
-        document.getElementById('resourceName').value = pluginMessage.configData.resourceName || 'unset';
-        document.getElementById('deploymentName').value = pluginMessage.configData.deploymentName || 'unset';
-        document.getElementById('apiKey').value = pluginMessage.configData.apiKey || 'unset';
-      }
-    };
+      // Copy button event listener
+      document.getElementById('copy-ai').onclick = () => {
+        // Select the text field
+        const output = document.getElementById('output');
+        output.select();
+        output.setSelectionRange(0, 99999); // For mobile devices
+
+        // Copy the text inside the text field
+        document.execCommand('copy');
+
+        // Alert the copied text
+        alert('Instructions copied to clipboard! You can put this straight into GPT or configure the API call in the extension and run it within our app!');
+      };
 
 
-    document.getElementById('save').onclick = () => {
-    // Get the values from the input fields
-    const configData = {
-      resourceName: document.getElementById('resourceName').value,
-      deploymentName: document.getElementById('deploymentName').value,
-      apiKey: document.getElementById('apiKey').value
-    };
+      // Request the plugin to load settings when the UI is loaded
+      parent.postMessage({ pluginMessage: { type: 'load-settings' } }, '*');
 
-    // Send the values to the main plugin code to save
-    parent.postMessage({ pluginMessage: { type: 'save-settings', configData } }, '*');
-  };
+      // Listen for messages sent from the plugin to the UI
+      window.onmessage = event => {
+        const pluginMessage = event.data.pluginMessage;
+        if (pluginMessage.type === 'set-instructions') {
+          // Set the text in the output box
+          document.getElementById('output').value = pluginMessage.instructions;
+        }
+
+        if (pluginMessage.type === 'set-openai') {
+          // Set the text in the output box
+          document.getElementById('openaioutput').value = pluginMessage.instructions;
+        }
+
+        if (pluginMessage.type === 'load-settings') {
+          // If settings are received, set the input fields with these values
+          document.getElementById('resourceName').value = pluginMessage.configData.resourceName || 'unset';
+          document.getElementById('deploymentName').value = pluginMessage.configData.deploymentName || 'unset';
+          document.getElementById('apiKey').value = pluginMessage.configData.apiKey || 'unset';
+        }
+      };
+
+
+      document.getElementById('save').onclick = () => {
+        // Get the values from the input fields
+        const configData = {
+          resourceName: document.getElementById('resourceName').value,
+          deploymentName: document.getElementById('deploymentName').value,
+          apiKey: document.getElementById('apiKey').value
+        };
+
+        // Send the values to the main plugin code to save
+        parent.postMessage({ pluginMessage: { type: 'save-settings', configData } }, '*');
+      };
 
 
 
 
-  </script>
-</body>
-</html>
+    </script>
+  </body>
+
+  </html>
