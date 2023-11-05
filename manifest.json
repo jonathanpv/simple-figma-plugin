@@ -11,7 +11,7 @@
   "ui": "ui.html",
   "networkAccess": {
     "allowedDomains": [
-      "none"
+      "https://jsonplaceholder.typicode.com/posts/1"
     ]
   }
 }

@@ -11,6 +11,20 @@
 figma.showUI(__html__, { width: 500, height: 700 });
 
 // ts-ignore() 
+// Function to fetch data from the dummy API and store it in a string
+
+
+// Call the function to fetch data
+
+
+
+
+function generateTempIcon(node: SceneNode) {
+  let svg = `<svg height="${node.height}" width="${node.width}">
+  <ellipse cx="${node.width / 2}" cy="${node.height / 2}" rx="${(node.width / 2.4)}" ry="${(node.height / 2.4)}" style="fill:yellow;stroke:purple;stroke-width:2" />
+ </svg>`
+return svg;
+}
 
 function getPadding(node: SceneNode) {
   return `${node.paddingTop}px ${node.paddingRight}px ${node.paddingBottom}px ${node.paddingLeft}px`;
@@ -50,8 +64,18 @@ async function getNodeCSS(node: SceneNode, selector) {
         resString[resString.length - 1] = '';
         return resString.join("");
       });
-      
+
+      if (child.name.includes("Icon")) {
+      cssString += `\n// in the figma file this is called: ${child.name}\n`
+      cssString += `only include the icon, heres the svg: \n`;
+      const svgText = await child.exportAsync({format: "SVG_STRING"});
+      const svg = generateTempIcon(child);
+      cssString += `#${selector}:nth-child(${i + 1}) {\n ${svg}\n}\n\n`;
+      } else {
+        cssString += `\n// in the figma file this is called: ${child.name}\n`
       cssString += `#${selector}:nth-child(${i + 1}) {\n ${css}\n}\n\n`;
+      }
+      
     };
   }
 
@@ -110,6 +134,16 @@ figma.ui.onmessage = async msg => {
       type: 'set-instructions',
       instructions: cssString
     });
+
+    fetch('https://jsonplaceholder.typicode.com/posts/1')
+      .then(res => res.json())
+      .then(data => {
+        figma.ui.postMessage({
+          type: 'set-openai',
+          instructions: JSON.stringify(data)
+        });
+      });
+
 
   }
 
