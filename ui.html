@@ -255,7 +255,73 @@
       };
 
       document.getElementById('generate-ai').onclick = () => {
-        parent.postMessage({ pluginMessage: { type: 'generate-ai' } }, '*');
+        // parent.postMessage({ pluginMessage: { type: 'generate-ai' } }, '*');
+        const resourceName = document.getElementById('resourceName').value;
+        const deploymentName = document.getElementById('deploymentName').value;
+        const apiKey = document.getElementById('apiKey').value;
+        const apiVersion = '2023-07-01-preview';
+
+        // Construct the URL using template literals
+        const url = `https://${resourceName}.openai.azure.com/openai/deployments/${deploymentName}/chat/completions?api-version=${apiVersion}`;
+
+        // Define the data to be sent
+        const data = {
+          messages: [
+            { role: "system", content: "You are a helpful assistant." },
+            { role: "user", content: "Reply with 100 word text please :)" },
+          ],
+          temperature: 0.3,
+          top_p: 0.3,
+          max_tokens: 20000,
+          stream: true
+        };
+
+        fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'api-key': apiKey
+          },
+          body: JSON.stringify(data)
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          reader.read().then(function pump({ done, value }) {
+            if (done) {
+              // Do something with last chunk of data then exit reader
+              return;
+            }
+            let chunk = decoder.decode(value);
+            let parts = chunk.split('\n'); // assuming newline-delimited JSON
+
+            parts.forEach(part => {
+              if (part) {
+                // part comes in the form "data: <JSON HERE>", so we ignore first 6 chars
+                let data = part.slice(6);
+                if (!data.includes("[DONE]"))
+                {
+                  const json = JSON.parse(data);
+                  if (json && json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content) {
+                    document.getElementById("openaioutput").value += json.choices[0].delta.content;
+                  }
+                }
+              }
+            });
+
+            // Read some more, and call this function again
+            return reader.read().then(pump);
+          });
+
+        })
+        .catch(error => {
+          console.error('Fetch error:', error);
+        });
+        
+
       }
 
       // Copy button event listener
@@ -311,8 +377,8 @@
       };
 
 
-
-
+      fetch("https://jsonplaceholder.typicode.com/posts/1").then(res => {console.log(res)});
+      console.log("ok")
     </script>
   </body>
 

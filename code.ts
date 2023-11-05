@@ -179,9 +179,9 @@ figma.ui.onmessage = async msg => {
       temperature: 0.3,
       top_p: 0.3,
       max_tokens: 20000,
+      stream: true
     };
 
-    // Perform the fetch request
     fetch(url, {
       method: 'POST',
       headers: {
@@ -189,13 +189,24 @@ figma.ui.onmessage = async msg => {
         'api-key': apiKey
       },
       body: JSON.stringify(data)
-    })
-      .then(response => response.json())
-      .then(data => {
-        figma.ui.postMessage({
-          type: 'set-openai',
-          instructions: JSON.stringify(data.choices[0].message.content)
-        });
+    }).then(response => {
+      return response.text();
+        // figma.ui.postMessage({
+        //   type: 'set-openai',
+        //   instructions: JSON.stringify(data.choices[0].message.content)
+        // });
+      }).then(text => {
+        // Here we have the entire response body as text.
+        // For an event stream, this is not ideal because we cannot process events as they arrive.
+        console.log('Received text:', text);
+        
+        // If you were to manually process the event stream text, you would need to split
+        // the text by the event stream's usual delimiter ("\n\n") and handle each event.
+        const events = text.split('\n\n');
+        for (let event of events) {
+          // Further processing for each event...
+          console.log('Event:', event);
+        }
       })
       .catch((error) => {
         console.error('Error:', error);
@@ -204,7 +215,7 @@ figma.ui.onmessage = async msg => {
     // fetch('https://jsonplaceholder.typicode.com/posts/1')
     //   .then(res => res.json())
     //   .then(data => {
-        
+
     //   });
   }
 
