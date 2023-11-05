@@ -72,6 +72,37 @@
     .copy-button:hover {
       background-color: #45a049;
     }
+
+    .fancy-input {
+  padding: 10px;
+  margin: 10px 0;
+  width: calc(100% - 22px); /* Adjust width taking padding into account */
+  border: 2px solid #007bff;
+  border-radius: 5px;
+  outline: none;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+.fancy-input:focus {
+  border-color: #0056b3;
+}
+
+.fancy-button {
+  padding: 10px 20px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #28a745;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.fancy-button:hover {
+  background-color: #218838;
+}
+
   </style>
 </head>
 <body>
@@ -90,6 +121,18 @@
     <!-- The copy button itself -->
     <button id="copy" class="copy-button">Copy Instructions</button>
   </div>
+
+  <!-- Additional fields for user to fill in -->
+  <div id="config-container">
+    <span>Azure Resource Name</span>
+    <input type="text" id="resourceName" class="fancy-input" placeholder="Enter Resource Name" />
+    <span>Azure Deployment Name</span>
+    <input type="text" id="deploymentName" class="fancy-input" placeholder="Enter Deployment Name" />
+    <span>Azure OpenAI APIKey </span>
+    <input type="password" id="apiKey" class="fancy-input" placeholder="Enter API Key" />
+  </div>
+
+  <button id="save" class="fancy-button">Save Configuration</button>
 
 
   <!-- Textarea for the openai output -->
@@ -116,6 +159,10 @@
       alert('Instructions copied to clipboard!');
     };
 
+
+  // Request the plugin to load settings when the UI is loaded
+  parent.postMessage({ pluginMessage: { type: 'load-settings' } }, '*');
+
     // Listen for messages sent from the plugin to the UI
     window.onmessage = event => {
       const pluginMessage = event.data.pluginMessage;
@@ -128,7 +175,29 @@
         // Set the text in the output box
         document.getElementById('openaioutput').value = pluginMessage.instructions;
       }
+
+      if (pluginMessage.type === 'load-settings') {
+        // If settings are received, set the input fields with these values
+        document.getElementById('resourceName').value = pluginMessage.configData.resourceName || 'unset';
+        document.getElementById('deploymentName').value = pluginMessage.configData.deploymentName || 'unset';
+        document.getElementById('apiKey').value = pluginMessage.configData.apiKey || 'unset';
+      }
     };
+
+
+    document.getElementById('save').onclick = () => {
+    // Get the values from the input fields
+    const configData = {
+      resourceName: document.getElementById('resourceName').value,
+      deploymentName: document.getElementById('deploymentName').value,
+      apiKey: document.getElementById('apiKey').value
+    };
+
+    // Send the values to the main plugin code to save
+    parent.postMessage({ pluginMessage: { type: 'save-settings', configData } }, '*');
+  };
+
+
 
 
   </script>

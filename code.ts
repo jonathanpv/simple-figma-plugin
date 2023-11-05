@@ -109,6 +109,30 @@ figma.ui.onmessage = async msg => {
   // One way of distinguishing between different types of messages sent from
   // your HTML page is to use an object with a "type" property like this.
   
+  if (msg.type === 'save-settings') {
+    // Save the values to client storage
+    await figma.clientStorage.setAsync('resourceName', msg.configData.resourceName);
+    await figma.clientStorage.setAsync('deploymentName', msg.configData.deploymentName);
+    await figma.clientStorage.setAsync('apiKey', msg.configData.apiKey);
+  }
+
+  if (msg.type === 'load-settings') {
+    // Load the values from client storage
+    const resourceName = await figma.clientStorage.getAsync('resourceName');
+    const deploymentName = await figma.clientStorage.getAsync('deploymentName');
+    const apiKey = await figma.clientStorage.getAsync('apiKey');
+    
+    // Send the values back to the UI
+    figma.ui.postMessage({
+      type: 'load-settings',
+      configData: {
+        resourceName,
+        deploymentName,
+        apiKey
+      }
+    });
+  }
+
   const selection = figma.currentPage.selection;
   let cssString: string = "";
 
