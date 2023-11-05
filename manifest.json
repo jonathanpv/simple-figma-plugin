@@ -15,7 +15,8 @@
       "https://fonts.googleapis.com",
       "https://fonts.gstatic.com",
       "https://unpkg.com/feather-icons",
-      "https://unpkg.com/feather.min.js.map"
+      "https://unpkg.com/feather.min.js.map",
+      "https://*.openai.azure.com"
     ]
   }
 }

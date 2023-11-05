@@ -23,7 +23,7 @@ function generateTempIcon(node: SceneNode) {
   let svg = `<svg height="${node.height}" width="${node.width}">
   <ellipse cx="${node.width / 2}" cy="${node.height / 2}" rx="${(node.width / 2.4)}" ry="${(node.height / 2.4)}" style="fill:yellow;stroke:purple;stroke-width:2" />
  </svg>`
-return svg;
+  return svg;
 }
 
 function getPadding(node: SceneNode) {
@@ -53,7 +53,7 @@ async function getNodeCSS(node: SceneNode, selector) {
 
   // // Construct the CSS string for the node
   // cssString += `#${selector} {\n${css}\n}\n\n`;
-  
+
   if (node.children && node.children.length > 0) {
     for (let i = 0; i < node.children.length; i++) {
       let child = node.children[i];
@@ -66,35 +66,35 @@ async function getNodeCSS(node: SceneNode, selector) {
       });
 
       if (child.name.includes("Icon")) {
-      cssString += `\n// in the figma file this is called: ${child.name}\n`
-      cssString += `only include the icon, heres the svg: \n`;
-      const svgText = await child.exportAsync({format: "SVG_STRING"});
-      const svg = generateTempIcon(child);
-      cssString += `#${selector}:nth-child(${i + 1}) {\n ${svg}\n}\n\n`;
+        cssString += `\n// in the figma file this is called: ${child.name}\n`
+        cssString += `only include the icon, heres the svg: \n`;
+        const svgText = await child.exportAsync({ format: "SVG_STRING" });
+        const svg = generateTempIcon(child);
+        cssString += `#${selector}:nth-child(${i + 1}) {\n ${svg}\n}\n\n`;
       } else {
         cssString += `\n// in the figma file this is called: ${child.name}\n`
-      cssString += `#${selector}:nth-child(${i + 1}) {\n ${css}\n}\n\n`;
+        cssString += `#${selector}:nth-child(${i + 1}) {\n ${css}\n}\n\n`;
       }
-      
+
     };
   }
 
   return cssString;
 }
 
-async function processNode(node, selectorPrefix = '', name='') {
+async function processNode(node, selectorPrefix = '', name = '') {
   let cssString = '';
   const nodeName = selectorPrefix + name;
-  
+
   cssString += await getNodeCSS(node, nodeName);
-  
+
   // Recursively process child nodes
   if (node.children && node.children.length > 0) {
     for (let i = 0; i < node.children.length; i++) {
       // we want the name to always be in child notation, so the only css name we have is the parent one
       // rest of definitions are okay to be <parentSelector>:nth-child(1):nth-child(n) and so forth
       let name = `${nodeName}:nth-child(${i + 1})`;
-      
+
       cssString += await processNode(node.children[i], `${name}`);
     }
   }
@@ -108,7 +108,7 @@ async function processNode(node, selectorPrefix = '', name='') {
 figma.ui.onmessage = async msg => {
   // One way of distinguishing between different types of messages sent from
   // your HTML page is to use an object with a "type" property like this.
-  
+
   if (msg.type === 'save-settings') {
     // Save the values to client storage
     await figma.clientStorage.setAsync('resourceName', msg.configData.resourceName);
@@ -121,7 +121,7 @@ figma.ui.onmessage = async msg => {
     const resourceName = await figma.clientStorage.getAsync('resourceName');
     const deploymentName = await figma.clientStorage.getAsync('deploymentName');
     const apiKey = await figma.clientStorage.getAsync('apiKey');
-    
+
     // Send the values back to the UI
     figma.ui.postMessage({
       type: 'load-settings',
@@ -144,12 +144,12 @@ figma.ui.onmessage = async msg => {
         figma.ui.postMessage({ type: 'error', message: 'No nodes selected.' });
         return;
       }
-  
+
       for (const node of selection) {
-        await node.getDevResourcesAsync().then((res) => {console.log(res)});
+        await node.getDevResourcesAsync().then((res) => { console.log(res) });
         console.log(getPadding(node));
         cssString += `#${node.name.replace(/\s/g, '')} `
-        cssString += await node.getCSSAsync().then((res) => {removePaddingFromGeneratedCSSAndUseCorrectVars(node, res); return JSON.stringify(res, null, 2)}) + '\n';
+        cssString += await node.getCSSAsync().then((res) => { removePaddingFromGeneratedCSSAndUseCorrectVars(node, res); return JSON.stringify(res, null, 2) }) + '\n';
         cssString += await processNode(node, '', node.name.replace(/\s/g, ''));
       }
     }
@@ -161,14 +161,51 @@ figma.ui.onmessage = async msg => {
   }
 
   if (msg.type === 'generate-ai') {
-    fetch('https://jsonplaceholder.typicode.com/posts/1')
-      .then(res => res.json())
+    // Define the parameters
+    const resourceName = await figma.clientStorage.getAsync('resourceName');
+    const deploymentName = await figma.clientStorage.getAsync('deploymentName');
+    const apiKey = await figma.clientStorage.getAsync('apiKey');
+    const apiVersion = '2023-07-01-preview';
+
+    // Construct the URL using template literals
+    const url = `https://${resourceName}.openai.azure.com/openai/deployments/${deploymentName}/chat/completions?api-version=${apiVersion}`;
+
+    // Define the data to be sent
+    const data = {
+      messages: [
+        { role: "system", content: "You are a helpful assistant." },
+        { role: "user", content: "Reply with hello world please :)" },
+      ],
+      temperature: 0.3,
+      top_p: 0.3,
+      max_tokens: 20000,
+    };
+
+    // Perform the fetch request
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': apiKey
+      },
+      body: JSON.stringify(data)
+    })
+      .then(response => response.json())
       .then(data => {
         figma.ui.postMessage({
           type: 'set-openai',
-          instructions: JSON.stringify(data)
+          instructions: JSON.stringify(data.choices[0].message.content)
         });
+      })
+      .catch((error) => {
+        console.error('Error:', error);
       });
+
+    // fetch('https://jsonplaceholder.typicode.com/posts/1')
+    //   .then(res => res.json())
+    //   .then(data => {
+        
+    //   });
   }
 
   // Make sure to close the plugin when you're done. Otherwise the plugin will
