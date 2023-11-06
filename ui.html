@@ -129,11 +129,11 @@
         font-size: 14px;
       }
 
-      .configuration-container>.input-field {
+      .config-section > .input-field {
         margin-top: 0px;
       }
 
-      .text-container {
+      .welcome-section {
         margin-bottom: 20px;
       }
 
@@ -174,7 +174,7 @@
 
   <body>
     <div class="main">
-      <div class="text-container">
+      <div class="welcome-section">
         <h1>Welcome to Layout Helper</h1>
         <p>This tool generates instructions for ChatGPT to make code responsive with TailwindCSS, focusing only on the
           layout.</p>
@@ -187,20 +187,22 @@
         <h3>Get the layout</h3>
         <p>`generate()` button will recursively crawl your selected page and generate the layout css along with
           description of the name/position/child id</p>
-        <div style="display:flex; flex-direction:row; gap: 60px;">
-          <button id="generate-layout" class="button">Generate Layout Instructions</button>
-          <button id="copy-layout" class="button icon-button">
-            <i data-feather="copy"></i>
-          </button>
-        </div>
+
         <textarea id="output" class="output" readonly
           placeholder="Generated instructions will appear here..."></textarea>
+
+          <div style="display:flex; flex-direction:row; gap: 60px;">
+            <button id="generate-layout" class="button">Generate Layout Instructions</button>
+            <button id="copy-layout" class="button icon-button">
+              <i data-feather="copy"></i>
+            </button>
+          </div>
       </div>
 
       <hr>
 
       <!-- Additional fields for user to fill in -->
-      <div class="configuration-container">
+      <div class="config-section">
         <h3>AI Configuration</h3>
         <p>`save()` button will save your API key in localstorage so you don't have to get them from your ai portals
           currently we only support Azure OpenAI but we plan on supporting multiple profiles, and other AI vendors like
@@ -221,6 +223,11 @@
         <h3>Ask GPT</h3>
         <p>`generateCode()` button will send your instructions to chatgpt, we recommend gpt4 32k for large, full app
           designs, but component-by-component gpt3 does well</p>
+        
+              <!-- Textarea for the openai output -->
+      <textarea id="output-ai" class="output" readonly
+      placeholder="Generated openai code will appear here..."></textarea>
+
         <div style="display:flex; flex-direction:row; gap: 60px;">
           <button id="generate-ai" class="button">AI Generate Code</button>
           <button id="copy-ai" class="button icon-button">
@@ -229,9 +236,7 @@
 
         </div>
       </div>
-      <!-- Textarea for the openai output -->
-      <textarea id="openaioutput" class="output" readonly
-        placeholder="Generated openai code will appear here..."></textarea>
+
     </div>
     <script src="https://unpkg.com/feather-icons"></script>
     <script>
@@ -306,7 +311,7 @@
                 {
                   const json = JSON.parse(data);
                   if (json && json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content) {
-                    document.getElementById("openaioutput").value += json.choices[0].delta.content;
+                    document.getElementById("output-ai").value += json.choices[0].delta.content;
                   }
                 }
               }
@@ -352,7 +357,7 @@
 
         if (pluginMessage.type === 'set-openai') {
           // Set the text in the output box
-          document.getElementById('openaioutput').value = pluginMessage.instructions;
+          document.getElementById('output-ai').value = pluginMessage.instructions;
         }
 
         if (pluginMessage.type === 'load-settings') {
