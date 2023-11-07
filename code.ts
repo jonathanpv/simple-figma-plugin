@@ -17,6 +17,7 @@ figma.showUI(__html__, { width: 500, height: 700 });
 // Call the function to fetch data
 
 
+let initialSelection = [...figma.currentPage.selection];
 
 
 function generateTempIcon(node: SceneNode) {
@@ -53,7 +54,13 @@ async function getNodeCSS(node: SceneNode, selector) {
 
   // // Construct the CSS string for the node
   // cssString += `#${selector} {\n${css}\n}\n\n`;
-
+  if (node.name.includes("Icon")) {
+    cssString += `\n// in the figma file this is called: ${node.name}\n`
+    cssString += `only include the icon, heres the svg: \n`;
+    const svg = generateTempIcon(node);
+    cssString += `#${selector} {\n ${svg}\n}\n\n`;
+    return cssString;
+  }
   if (node.children && node.children.length > 0) {
     for (let i = 0; i < node.children.length; i++) {
       let child = node.children[i];
@@ -65,14 +72,8 @@ async function getNodeCSS(node: SceneNode, selector) {
         return resString.join("");
       });
 
-      if (child.name.includes("Icon")) {
-        cssString += `\n// in the figma file this is called: ${child.name}\n`
-        cssString += `only include the icon, heres the svg: \n`;
-        const svgText = await child.exportAsync({ format: "SVG_STRING" });
-        const svg = generateTempIcon(child);
-        cssString += `#${selector}:nth-child(${i + 1}) {\n ${svg}\n}\n\n`;
-      } else {
-        cssString += `\n// in the figma file this is called: ${child.name}\n`
+      if (!child.name.includes("Icon")) {
+        cssString += `\n//// in the figma file this is called: ${child.name}\n`
         cssString += `#${selector}:nth-child(${i + 1}) {\n ${css}\n}\n\n`;
       }
 
@@ -191,23 +192,23 @@ figma.ui.onmessage = async msg => {
       body: JSON.stringify(data)
     }).then(response => {
       return response.text();
-        // figma.ui.postMessage({
-        //   type: 'set-openai',
-        //   instructions: JSON.stringify(data.choices[0].message.content)
-        // });
-      }).then(text => {
-        // Here we have the entire response body as text.
-        // For an event stream, this is not ideal because we cannot process events as they arrive.
-        console.log('Received text:', text);
-        
-        // If you were to manually process the event stream text, you would need to split
-        // the text by the event stream's usual delimiter ("\n\n") and handle each event.
-        const events = text.split('\n\n');
-        for (let event of events) {
-          // Further processing for each event...
-          console.log('Event:', event);
-        }
-      })
+      // figma.ui.postMessage({
+      //   type: 'set-openai',
+      //   instructions: JSON.stringify(data.choices[0].message.content)
+      // });
+    }).then(text => {
+      // Here we have the entire response body as text.
+      // For an event stream, this is not ideal because we cannot process events as they arrive.
+      console.log('Received text:', text);
+
+      // If you were to manually process the event stream text, you would need to split
+      // the text by the event stream's usual delimiter ("\n\n") and handle each event.
+      const events = text.split('\n\n');
+      for (let event of events) {
+        // Further processing for each event...
+        console.log('Event:', event);
+      }
+    })
       .catch((error) => {
         console.error('Error:', error);
       });
@@ -219,7 +220,75 @@ figma.ui.onmessage = async msg => {
     //   });
   }
 
+
+  if (msg.type === 'get-nodes') {
+    const nodesData = await getNodes();
+    figma.ui.postMessage({ type: 'nodes-data', data: nodesData });
+  }
+  if (msg.type === 'save-node-config') {
+    for (const node of msg.nodes) {
+      await figma.clientStorage.setAsync(node.node_id, node.node_instructions);
+    }
+    figma.ui.postMessage({ type: 'save-complete' });
+  }
+  if (msg.type === 'select-node') {
+    const nodeToSelect = figma.getNodeById(msg.node_id);
+    if (nodeToSelect) {
+      figma.viewport.scrollAndZoomIntoView([nodeToSelect]);
+      figma.currentPage.selection = [nodeToSelect];
+    }
+  }
+
+  if (msg.type === 'get-node-instruction') {
+    const instruction = await figma.clientStorage.getAsync(msg.node_id);
+    figma.ui.postMessage({ type: 'node-instruction-data', data: { node_id: msg.node_id, instruction: instruction } });
+  }
+
   // Make sure to close the plugin when you're done. Otherwise the plugin will
   // keep running, which shows the cancel button at the bottom of the screen.
   // figma.closePlugin();
 };
+
+
+async function getNodes(): Promise<any[]> {
+  const selectedNodes = figma.currentPage.selection;
+
+  // Return an empty array if no nodes are selected
+  if (selectedNodes.length === 0) {
+    figma.notify('No nodes selected');
+    return [];
+  }
+
+  // Helper function to recursively process nodes and their children
+  async function processNode(node: SceneNode): Promise<any> {
+    // Fetch instructions for the current node
+    const instruction = await figma.clientStorage.getAsync(node.id) || '';
+
+    // Base node data
+    let nodeData = {
+      id: node.id,
+      name: node.name,
+      instruction: instruction,
+      children: []
+    };
+
+    // If the node has children, process each one and add to the node's children array
+    if ('children' in node && node.children.length > 0) {
+      for (const child of node.children) {
+        const childData = await processNode(child);
+        nodeData.children.push(childData); // Add child data to the parent node
+      }
+    }
+
+    return nodeData;
+  }
+
+  // Process each selected node and its children
+  let nodesData = [];
+  for (const node of selectedNodes) {
+    const nodeData = await processNode(node);
+    nodesData.push(nodeData);
+  }
+
+  return nodesData;
+}

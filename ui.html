@@ -163,6 +163,93 @@
         border-top: 1px solid var(--border-color);
         margin: 20px 0;
       }
+
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+        padding-top: 100px;
+    }
+    .modal-content {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        background-color: #fff;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #eee;
+        width: 80%;
+        height: 75vh;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        overflow: scroll;
+    }
+    .modal-content h2 {
+        color: #000;
+    }
+    .modal-content p {
+      font-size: small;
+    }
+    .modal-content > .node-tree {
+  flex-shrink: 0; /* Prevents these elements from shrinking */
+}
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    .node-tree {
+        list-style-type: none;
+        overflow-y: auto;
+        flex: 1;
+        margin: 0;
+        padding: 0;
+        min-height: 100px;
+        overflow-y: auto;
+        margin-top: 20px;
+        border: 1px solid #eee;
+        background: #FFF;
+        padding: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .node-button {
+        display: block;
+        background-color: #fff;
+        padding: 5px 30px;
+        margin: 1px 0;
+        color: #333;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .node-button:hover {
+        background-color: #f9f9f9;
+    }
+    #nodeInstruction {
+        /* width: 100%; */
+        min-height: 100px;
+        /* max-width: 100%; */
+        margin-top: 15px;
+        padding: 20px;
+        /* background: #fff; */
+        /* color: #333; */
+        /* border: 1px solid #eee; */
+        /* border-radius: 7px; */
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
     </style>
   </head>
 
@@ -192,13 +279,35 @@
           placeholder="Generated instructions will appear here..."></textarea>
 
           <div style="display:flex; flex-direction:row; gap: 60px;">
-            <button id="generate-layout" class="button">Generate Layout Instructions</button>
+            <button id="generate-layout" class="button">Generate Layout</button>
+
+            <button id="fineTunePrompt" class="button">Finetune</button>
+
             <button id="copy-layout" class="button icon-button">
               <i data-feather="copy"></i>
             </button>
           </div>
       </div>
 
+      <div id="myModal" class="modal">
+        <div class="modal-content">
+          <div style="display: flex; flex-direction: row; align-items: center; position: relative;">
+            <div style="width: 100%;">
+              <h2>Finetune prompt</h2>
+              <p>This modal allows you to select a node and specify instructions GPT should listen to. Start by selecting a node from the drop down below, then add custom instructions in the textarea on the bottom of the modal</p>
+            </div>
+            <span class="close" style="position: absolute; top: 10px; right: 10px">&times;</span>
+          </div>
+          
+          <h3 style="margin-bottom:-10px;">Select a node below</h3>
+          <div id="nodeTree" class="node-tree" style="margin-bottom:10px;"></div>
+    
+          <h3>Specify Instructions</h3>
+          <p>Now that you have the selected node, specify it's instructions below</p>
+          <textarea id="nodeInstruction" class="output" placeholder="Select a node to edit its AI instructions"></textarea>
+          <button id="saveNodeConfig" class="button">Save Node Config</button>
+        </div>
+      </div>
       <hr>
 
       <!-- Additional fields for user to fill in -->
@@ -347,6 +456,82 @@
       // Request the plugin to load settings when the UI is loaded
       parent.postMessage({ pluginMessage: { type: 'load-settings' } }, '*');
 
+
+    const textArea = document.getElementById('nodeInstruction');
+    textArea.addEventListener('input', function () {
+      const selectedNodeId = textArea.dataset.selectedNodeId;
+      if (selectedNodeId) {
+        // Save on each keystroke
+        parent.postMessage({
+          pluginMessage: {
+            type: 'save-node-config',
+            nodes: [{
+              node_id: selectedNodeId,
+              node_instructions: textArea.value
+            }]
+          }
+        }, '*');
+      }
+    });
+
+
+
+    const modal = document.getElementById("myModal");
+    const btn = document.getElementById("fineTunePrompt");
+    const span = document.getElementsByClassName("close")[0];
+    const saveBtn = document.getElementById("saveNodeConfig");
+    btn.onclick = function () {
+      modal.style.display = "inline-block";
+      parent.postMessage({ pluginMessage: { type: 'get-nodes' } }, '*');
+    }
+    span.onclick = function () {
+      modal.style.display = "none";
+      parent.postMessage({ pluginMessage: { type: 'close-modal' } }, '*');
+    }
+    window.onclick = function (event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+        parent.postMessage({ pluginMessage: { type: 'close-modal' } }, '*');
+      }
+    }
+
+    function createNodeElement(nodeData, depth = 0) {
+      const nodeButton = document.createElement('div');
+      nodeButton.className = 'node-button';
+      nodeButton.textContent = nodeData.name;
+      nodeButton.style.paddingLeft = `${depth * 20}px`; // Increase padding for children
+      nodeButton.dataset.nodeId = nodeData.id;
+
+      // Click event to select a node
+      nodeButton.addEventListener('click', function (event) {
+        event.stopPropagation(); // Prevent triggering click events on parent elements
+        // Send message to the plugin to select the node
+        parent.postMessage({ pluginMessage: { type: 'select-node', node_id: nodeData.id } }, '*');
+        // Display the instruction for the selected node in the textarea
+        // const textArea = document.getElementById('nodeInstruction');
+        // textArea.value = nodeData.instruction;
+        // textArea.dataset.selectedNodeId = nodeData.id; // Store the selected node ID
+        textArea.value = "";
+        // Request the saved instruction for the selected node
+        parent.postMessage({ pluginMessage: { type: 'get-node-instruction', node_id: nodeData.id } }, '*');
+      });
+      return nodeButton;
+    }
+
+    
+      function appendNodeElements(nodeData, container, depth = 0) {
+      // Create the current node element
+      const nodeElement = createNodeElement(nodeData, depth);
+      container.appendChild(nodeElement);
+
+      // Recursively append child nodes
+      if (nodeData.children.length > 0) {
+        for (const childNode of nodeData.children) {
+          appendNodeElements(childNode, container, depth + 1);
+        }
+      }
+    }
+
       // Listen for messages sent from the plugin to the UI
       window.onmessage = event => {
         const pluginMessage = event.data.pluginMessage;
@@ -366,6 +551,33 @@
           document.getElementById('deploymentName').value = pluginMessage.configData.deploymentName || 'unset';
           document.getElementById('apiKey').value = pluginMessage.configData.apiKey || 'unset';
         }
+
+        if (pluginMessage.type === 'nodes-data') {
+        const nodeTree = document.getElementById("nodeTree");
+        nodeTree.innerHTML = ''; // Clear existing content
+        pluginMessage.data.forEach(nodeData => {
+          // Call the function with the root node data and depth 0
+          appendNodeElements(nodeData, nodeTree, 0);
+        });
+
+        modal.style.display = "block";
+      }
+
+
+      if (pluginMessage.type === 'save-complete') {
+        console.log("saverino");
+      }
+
+      if (pluginMessage.type === 'node-instruction-data') {
+        const textArea = document.getElementById('nodeInstruction');
+        // Set the value of the text area to the instruction fetched from storage
+        textArea.value = pluginMessage.data.instruction || ''; // If there's no instruction, default to empty string
+        textArea.dataset.selectedNodeId = pluginMessage.data.node_id; // Store the selected node ID
+      }
+
+
+      // more events from server here
+
       };
 
 
@@ -381,9 +593,18 @@
         parent.postMessage({ pluginMessage: { type: 'save-settings', configData } }, '*');
       };
 
-
-      fetch("https://jsonplaceholder.typicode.com/posts/1").then(res => {console.log(res)});
-      console.log("ok")
+      saveBtn.onclick = function () {
+      const selectedNodeId = textArea.dataset.selectedNodeId;
+      // Push only the selected node and its instructions
+      if (selectedNodeId) {
+        let nodes = [{
+          node_id: selectedNodeId,
+          node_instructions: textArea.value
+        }];
+        // Post the message with the selected node's instructions
+        parent.postMessage({ pluginMessage: { type: 'save-node-config', nodes } }, '*');
+      }
+    }
     </script>
   </body>
 
