@@ -16,7 +16,8 @@
       "https://fonts.gstatic.com",
       "https://unpkg.com/feather-icons",
       "https://unpkg.com/feather.min.js.map",
-      "https://*.openai.azure.com"
+      "https://*.openai.azure.com",
+      "https://api.openai.com/v1/chat/completions"
     ]
   }
 }

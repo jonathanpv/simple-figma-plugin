@@ -19,6 +19,24 @@ figma.showUI(__html__, { width: 500, height: 700 });
 
 let initialSelection = [...figma.currentPage.selection];
 
+async function deleteAllFigmaClientStorageValues() {
+  try {
+    // Retrieve all keys from the client storage
+    const keys = await figma.clientStorage.keysAsync();
+
+    // Iterate over the keys and delete them one by one
+    for (const key of keys) {
+      await figma.clientStorage.deleteAsync(key);
+    }
+
+    console.log('All Figma client storage values have been deleted.');
+  } catch (error) {
+    console.error('An error occurred while deleting client storage values:', error);
+  }
+}
+
+// deleteAllFigmaClientStorageValues()
+
 
 function generateTempIcon(node: SceneNode) {
   let svg = `<svg height="${node.height}" width="${node.width}">
@@ -46,7 +64,8 @@ function removePaddingFromGeneratedCSSAndUseCorrectVars(node: SceneNode, cssObje
   return cssObject;
 }
 
-async function getNodeCSS(node: SceneNode, selector) {
+async function getNodeCSS(node: SceneNode, selector, useRawSvg) {
+  console.log("in getNodeCss(node: SceneNode, selector, useRawSvg)", `getNodeCss(node: ${node}, selector: ${selector}, useRawSvg: ${useRawSvg})`);
   let cssString = '';
   // const css = await node.getCSSAsync().then((res) => {
   //   return JSON.stringify(res, null, 2);
@@ -55,15 +74,30 @@ async function getNodeCSS(node: SceneNode, selector) {
   // // Construct the CSS string for the node
   // cssString += `#${selector} {\n${css}\n}\n\n`;
   if (node.name.includes("Icon")) {
-    cssString += `\n// in the figma file this is called: ${node.name}\n`
-    cssString += `only include the icon, heres the svg: \n`;
-    const svg = generateTempIcon(node);
+    const instruction = await figma.clientStorage.getAsync(node.id);
+    cssString += `// Node name: ${node.name}\n`
+    if (instruction != undefined) {
+      cssString += `// Instructions: ${instruction}\n`
+    }
+
+    cssString += `// only include the icon, heres the svg: \n`;
+
+    let svg = "";
+
+
+    if (useRawSvg) {
+      svg = await node.exportAsync({ format: 'SVG_STRING' });
+    } else {
+      svg = generateTempIcon(node);
+    }
+
     cssString += `#${selector} {\n ${svg}\n}\n\n`;
     return cssString;
   }
   if (node.children && node.children.length > 0) {
     for (let i = 0; i < node.children.length; i++) {
       let child = node.children[i];
+      const instruction = await figma.clientStorage.getAsync(child.id);
       const css = await child.getCSSAsync().then((res) => {
         removePaddingFromGeneratedCSSAndUseCorrectVars(child, res);
         let resString = JSON.stringify(res, null, 2).split("");
@@ -73,7 +107,11 @@ async function getNodeCSS(node: SceneNode, selector) {
       });
 
       if (!child.name.includes("Icon")) {
-        cssString += `\n//// in the figma file this is called: ${child.name}\n`
+        cssString += `// Node name: ${child.name}\n`
+        if (instruction != undefined) {
+          cssString += `// Instructions: ${instruction}\n`
+        }
+
         cssString += `#${selector}:nth-child(${i + 1}) {\n ${css}\n}\n\n`;
       }
 
@@ -83,11 +121,12 @@ async function getNodeCSS(node: SceneNode, selector) {
   return cssString;
 }
 
-async function processNode(node, selectorPrefix = '', name = '') {
+async function processNode(node, selectorPrefix = '', name = '', useRawSvg) {
+  console.log("processNode(node, selectorPrefix = '', name = '', useRawSvg)", {node, selectorPrefix, name, useRawSvg})
   let cssString = '';
   const nodeName = selectorPrefix + name;
 
-  cssString += await getNodeCSS(node, nodeName);
+  cssString += await getNodeCSS(node, nodeName, useRawSvg);
 
   // Recursively process child nodes
   if (node.children && node.children.length > 0) {
@@ -96,11 +135,70 @@ async function processNode(node, selectorPrefix = '', name = '') {
       // rest of definitions are okay to be <parentSelector>:nth-child(1):nth-child(n) and so forth
       let name = `${nodeName}:nth-child(${i + 1})`;
 
-      cssString += await processNode(node.children[i], `${name}`);
+      console.log("processNode(node.children[i], `${name}`, '', useRawSvg)", {nodeChildrenAtI: node.children[i], selectorPrefix: name, name: '', useRawSvg})
+      cssString += await processNode(node.children[i], `${name}`, '', useRawSvg);
     }
   }
 
   return cssString;
+}
+
+
+type ServiceConfig = {
+  resourceName?: string;
+  deploymentName?: string;
+  apiKey?: string;
+  // Add more properties as needed for different services
+};
+
+// Define specific types for different services if they have unique fields
+type AzureOpenAIServiceConfig = ServiceConfig & {
+  // Fields specific to Azure Open AI
+};
+
+type OpenAIServiceConfig = ServiceConfig & {
+  // Fields specific to Open AI
+};
+
+type AnthropicServiceConfig = ServiceConfig & {
+  // Fields specific to Anthropic
+};
+
+// General type for all service configurations
+type AnyServiceConfig = AzureOpenAIServiceConfig | OpenAIServiceConfig | AnthropicServiceConfig;
+
+
+
+// Helper function to save settings for any service
+async function saveServiceSettings(service: string, configData: AnyServiceConfig) {
+  console.log("in figmaPlugin::saveServiceSettings()::service", service);
+  console.log("in figmaPlugin::saveServiceSettings()::configData", configData);
+  for (const key of Object.keys(configData)) {
+    console.log("in figmaPlugin::saveServiceSettings()::forloop::key", key);
+    await figma.clientStorage.setAsync(key, configData[key]);
+  }
+}
+
+
+// Helper function to load settings for any service
+async function loadServiceSettings(service: string) {
+  console.log("in loadServiceSettings::service", service);
+  // Assuming that all services have the same set of basic keys:
+  const keys = ['resourceName', 'deploymentName', 'apiKey'];
+  console.log("in loadServiceSettings::keys", keys);
+  const config = {};
+  console.log("in loadServiceSettings::config", config);
+  for (const key of keys) {
+    let service_key = `${service}-${key}`;
+    console.log("in loadServiceSettings::forloop::service_key", service_key);
+    let val = await figma.clientStorage.getAsync(service_key);
+    console.log("in loadServiceSettings::forloop::val", val);
+    if (val)
+      config[service_key] = val;
+    console.log("in loadServiceSettings::forloop::after val::config", config);
+  }
+  console.log("in loadServiceSettings::outsideforloop::config", config);
+  return config;
 }
 
 // Calls to "parent.postMessage" from within the HTML page will trigger this
@@ -111,27 +209,33 @@ figma.ui.onmessage = async msg => {
   // your HTML page is to use an object with a "type" property like this.
 
   if (msg.type === 'save-settings') {
-    // Save the values to client storage
-    await figma.clientStorage.setAsync('resourceName', msg.configData.resourceName);
-    await figma.clientStorage.setAsync('deploymentName', msg.configData.deploymentName);
-    await figma.clientStorage.setAsync('apiKey', msg.configData.apiKey);
+    console.log('save-settings plugin', msg.service, msg.configData);
+    await saveServiceSettings(msg.service, msg.configData);
+    figma.ui.postMessage({
+      type: 'settings-saved',
+      service: msg.service
+    });
+
   }
 
   if (msg.type === 'load-settings') {
-    // Load the values from client storage
-    const resourceName = await figma.clientStorage.getAsync('resourceName');
-    const deploymentName = await figma.clientStorage.getAsync('deploymentName');
-    const apiKey = await figma.clientStorage.getAsync('apiKey');
-
-    // Send the values back to the UI
+    console.log('load-settigns plugin', msg.service);
+    const serviceSettings = await loadServiceSettings(msg.service);
     figma.ui.postMessage({
       type: 'load-settings',
-      configData: {
-        resourceName,
-        deploymentName,
-        apiKey
-      }
+      service: msg.service,
+      configData: serviceSettings
     });
+  }
+
+  if (msg.type === 'update-configuration') {
+    console.log('update-settigns plugin', msg.service, msg.configData);
+    // Perform update logic here
+    figma.ui.postMessage({
+      type: 'configuration-updated',
+      service: msg.service
+    });
+
   }
 
   const selection = figma.currentPage.selection;
@@ -139,6 +243,7 @@ figma.ui.onmessage = async msg => {
 
 
   if (msg.type === 'generate-layout-instructions') {
+    console.log("generate-layout-instructions msg::", msg);
     for (const node of figma.currentPage.selection) {
 
       if (selection.length === 0) {
@@ -147,11 +252,14 @@ figma.ui.onmessage = async msg => {
       }
 
       for (const node of selection) {
-        await node.getDevResourcesAsync().then((res) => { console.log(res) });
-        console.log(getPadding(node));
-        cssString += `#${node.name.replace(/\s/g, '')} `
+
+        const name = node.name.replace(/\s/g, '');
+        const instruction = await figma.clientStorage.getAsync(node.id);
+        if (instruction)
+          cssString += `// Instruction[${name}]: ${instruction}\n`;
+        cssString += `#${name}\n`
         cssString += await node.getCSSAsync().then((res) => { removePaddingFromGeneratedCSSAndUseCorrectVars(node, res); return JSON.stringify(res, null, 2) }) + '\n';
-        cssString += await processNode(node, '', node.name.replace(/\s/g, ''));
+        cssString += await processNode(node, '', node.name.replace(/\s/g, ''), msg.useRawSvg);
       }
     }
 
@@ -260,7 +368,7 @@ async function getNodes(): Promise<any[]> {
   }
 
   // Helper function to recursively process nodes and their children
-  async function processNode(node: SceneNode): Promise<any> {
+  async function processNode2(node: SceneNode): Promise<any> {
     // Fetch instructions for the current node
     const instruction = await figma.clientStorage.getAsync(node.id) || '';
 
@@ -275,7 +383,7 @@ async function getNodes(): Promise<any[]> {
     // If the node has children, process each one and add to the node's children array
     if ('children' in node && node.children.length > 0) {
       for (const child of node.children) {
-        const childData = await processNode(child);
+        const childData = await processNode2(child);
         nodeData.children.push(childData); // Add child data to the parent node
       }
     }
@@ -286,7 +394,7 @@ async function getNodes(): Promise<any[]> {
   // Process each selected node and its children
   let nodesData = [];
   for (const node of selectedNodes) {
-    const nodeData = await processNode(node);
+    const nodeData = await processNode2(node);
     nodesData.push(nodeData);
   }
 

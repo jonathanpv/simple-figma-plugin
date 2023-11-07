@@ -26,6 +26,10 @@
         --text-color: #333;
         --font-family: 'Inter', sans-serif;
         --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+        --primary-color: #1662f3;
+        --light-color: #d0dffc;
+        --dark-color: #283b70;
       }
 
       body {
@@ -62,6 +66,13 @@
         margin-top: 20px;
         width: 100%;
       }
+      .button.hidden {
+        display: none;
+      }
+
+      .button.shown {
+        display: inline;
+      }
 
       .button:hover {
         background-color: var(--button-hover-color);
@@ -75,6 +86,14 @@
         transform: translateY(0);
       }
 
+      /* Thisx will apply when the button has the 'active' class added to it */
+      .button.active {
+          /* Styles for when the button is in the 'active' state */
+          background-color: var(--button-active-color);
+          box-shadow: none;
+          transform: translateY(0);
+      }
+
       .icon-button {
         display: inline-flex;
         align-items: center;
@@ -83,7 +102,7 @@
         font-size: 14px;
         width: auto;
         /* Adjust width as needed, or remove it to let the content define the size */
-        height: 40px;
+        
         /* Adjust height as needed */
       }
 
@@ -129,7 +148,7 @@
         font-size: 14px;
       }
 
-      .config-section > .input-field {
+      .config-section>.input-field {
         margin-top: 0px;
       }
 
@@ -175,8 +194,9 @@
         overflow: auto;
         background-color: rgba(0, 0, 0, 0.4);
         padding-top: 100px;
-    }
-    .modal-content {
+      }
+
+      .modal-content {
         display: flex;
         flex-direction: column;
         flex-grow: 1;
@@ -186,31 +206,38 @@
         border: 1px solid #eee;
         width: 80%;
         height: 75vh;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
         overflow: scroll;
-    }
-    .modal-content h2 {
+      }
+
+      .modal-content h2 {
         color: #000;
-    }
-    .modal-content p {
-      font-size: small;
-    }
-    .modal-content > .node-tree {
-  flex-shrink: 0; /* Prevents these elements from shrinking */
-}
-    .close {
+      }
+
+      .modal-content p {
+        font-size: small;
+      }
+
+      .modal-content>.node-tree {
+        flex-shrink: 0;
+        /* Prevents these elements from shrinking */
+      }
+
+      .close {
         color: #aaa;
         float: right;
         font-size: 28px;
         font-weight: bold;
-    }
-    .close:hover,
-    .close:focus {
+      }
+
+      .close:hover,
+      .close:focus {
         color: black;
         text-decoration: none;
         cursor: pointer;
-    }
-    .node-tree {
+      }
+
+      .node-tree {
         list-style-type: none;
         overflow-y: auto;
         flex: 1;
@@ -222,9 +249,10 @@
         border: 1px solid #eee;
         background: #FFF;
         padding: 10px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
-    .node-button {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      }
+
+      .node-button {
         display: block;
         background-color: #fff;
         padding: 5px 30px;
@@ -233,11 +261,13 @@
         text-align: left;
         cursor: pointer;
         transition: all 0.3s;
-    }
-    .node-button:hover {
+      }
+
+      .node-button:hover {
         background-color: #f9f9f9;
-    }
-    #nodeInstruction {
+      }
+
+      #nodeInstruction {
         /* width: 100%; */
         min-height: 100px;
         /* max-width: 100%; */
@@ -248,8 +278,46 @@
         /* border: 1px solid #eee; */
         /* border-radius: 7px; */
         margin-bottom: 20px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      }
+
+      .chip-container {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .chip {
+        font-family: var(--font-family);
+        font-size: 1rem;
+        height: 30px;
+        width: 150px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size:small;
+        border-radius: 5px;
+        box-shadow: 0 0 0 2px var(--button-color);
+        /* font-weight: 400; */
+        /* padding:5px; */
+        transition: background-color 250ms ease, box-shadow 250ms ease;
+        
+        /* Adjusted padding */
+        cursor: pointer;
+        margin-top: 20px;
+        position: relative;
+        /* To position the dot absolutely inside the chip */
+      }
+
+      .chip:hover {
+        /* background-color: blue; */
+        box-shadow: 0 0 0 calc(2px + 0.05rem) grey;
+      }
+
+      .chip.active {
+        box-shadow: 0 0 0 calc(2px + 0.05rem) black;
+      }
     </style>
   </head>
 
@@ -257,7 +325,7 @@
   <!DOCTYPE html>
   <html lang="en">
 
-  
+
 
   <body>
     <div class="main">
@@ -274,19 +342,22 @@
         <h3>Get the layout</h3>
         <p>`generate()` button will recursively crawl your selected page and generate the layout css along with
           description of the name/position/child id</p>
-
-        <textarea id="output" class="output" readonly
+        <div style="display: flex; flex-direction: row">
+          <button id="useRawSvgButton" class="button">useRawSvg</button>
+        </div>
+        <textarea id="output-layout" class="output" readonly
           placeholder="Generated instructions will appear here..."></textarea>
 
-          <div style="display:flex; flex-direction:row; gap: 60px;">
-            <button id="generate-layout" class="button">Generate Layout</button>
+        <div style="display:flex; flex-direction:row; gap: 10px;">
+          <button id="generate-layout" class="button">Layout</button>
 
-            <button id="fineTunePrompt" class="button">Finetune</button>
+          <button id="fineTunePrompt" class="button">Finetune</button>
 
-            <button id="copy-layout" class="button icon-button">
-              <i data-feather="copy"></i>
-            </button>
-          </div>
+          <button id="copy-layout" class="button icon-button">
+            <i data-feather="copy"></i>
+          </button>
+          
+        </div>
       </div>
 
       <div id="myModal" class="modal">
@@ -294,17 +365,20 @@
           <div style="display: flex; flex-direction: row; align-items: center; position: relative;">
             <div style="width: 100%;">
               <h2>Finetune prompt</h2>
-              <p>This modal allows you to select a node and specify instructions GPT should listen to. Start by selecting a node from the drop down below, then add custom instructions in the textarea on the bottom of the modal</p>
+              <p>This modal allows you to select a node and specify instructions GPT should listen to. Start by
+                selecting a node from the drop down below, then add custom instructions in the textarea on the bottom of
+                the modal</p>
             </div>
             <span class="close" style="position: absolute; top: 10px; right: 10px">&times;</span>
           </div>
-          
+
           <h3 style="margin-bottom:-10px;">Select a node below</h3>
           <div id="nodeTree" class="node-tree" style="margin-bottom:10px;"></div>
-    
+
           <h3>Specify Instructions</h3>
           <p>Now that you have the selected node, specify it's instructions below</p>
-          <textarea id="nodeInstruction" class="output" placeholder="Select a node to edit its AI instructions"></textarea>
+          <textarea id="nodeInstruction" class="output"
+            placeholder="Select a node to edit its AI instructions"></textarea>
           <button id="saveNodeConfig" class="button">Save Node Config</button>
         </div>
       </div>
@@ -317,25 +391,28 @@
           currently we only support Azure OpenAI but we plan on supporting multiple profiles, and other AI vendors like
           Anthropic 100k</p>
 
-        <label class="label">Azure Resource Name</label>
-        <input type="text" id="resourceName" class="input-field" placeholder="Enter Resource Name" />
-        <label class="label">Azure Deployment Name</label>
-        <input type="text" id="deploymentName" class="input-field" placeholder="Enter Deployment Name" />
-        <label class="label">Azure OpenAI APIKey </label>
-        <input type="password" id="apiKey" class="input-field" placeholder="Enter API Key" />
+        <div class="chip-container">
+          <!-- Chips for selecting the AI service -->
+          <div class="chip" style="--primary-color: #efd81d;" data-service="AZURE_OPEN_AI">Azure OpenAI</div>
+          <div class="chip" style="--primary-color: #41b883;" data-service="OPEN_AI">OpenAI</div>
+          <div class="chip" style="--primary-color: #ff3e00;" data-service="ANTHROPIC">Anthropic</div>
+        </div>
+
+        <div id="configOptions"></div>
+
       </div>
 
-      <button id="save" class="button">Save Configuration</button>
+      <button id="save" onclick="updateConfig()" class="button hidden">Save Configuration</button>
 
       <hr>
       <div class="generate-ai-section">
         <h3>Ask GPT</h3>
         <p>`generateCode()` button will send your instructions to chatgpt, we recommend gpt4 32k for large, full app
           designs, but component-by-component gpt3 does well</p>
-        
-              <!-- Textarea for the openai output -->
-      <textarea id="output-ai" class="output" readonly
-      placeholder="Generated openai code will appear here..."></textarea>
+
+        <!-- Textarea for the openai output -->
+        <textarea id="output-ai" class="output" readonly
+          placeholder="Generated openai code will appear here..."></textarea>
 
         <div style="display:flex; flex-direction:row; gap: 60px;">
           <button id="generate-ai" class="button">AI Generate Code</button>
@@ -349,15 +426,117 @@
     </div>
     <script src="https://unpkg.com/feather-icons"></script>
     <script>
+      function updateConfig() {
+        // Collect configuration from the input fields
+        console.log("in updateConfig()");
+        const service = document.querySelector('.chip.active').dataset.service; // Active service based on chip selection
+        const inputs = document.querySelectorAll('#configOptions .input-field');
+        const configData = {};
+
+        inputs.forEach(input => {
+          configData[input.id] = input.value;
+        });
+
+        // Send the collected data to the Figma plugin code to save the configuration
+        console.log("service: html", service);
+        parent.postMessage({
+          pluginMessage: {
+            type: 'save-settings',
+            service: service,
+            configData: configData
+          }
+        }, '*');
+
+      }
+
+      const chips = document.querySelectorAll('.chip');
+      chips.forEach(chip => {
+        chip.addEventListener('click', function () {
+          // Remove 'active' class from all chips
+          chips.forEach(c => c.classList.remove('active'));
+          // Add 'active' class to the clicked chip
+          this.classList.add('active');
+
+          // Assuming generateConfigOptions is defined and properly generates the config fields
+          const optionsHtml = generateConfigOptions(this.dataset.service);
+          document.getElementById('configOptions').innerHTML = optionsHtml;
+
+          // Assuming there's a function to handle loading settings (not shown in this snippet)
+          loadSettings(this.dataset.service);
+          document.getElementById("save").className = "button shown";
+        });
+      });
+
+      // Function to load settings for a given service
+      function loadSettings(service) {
+        // Post a message to the Figma plugin to load settings for the specified service
+        parent.postMessage({
+          pluginMessage: {
+            type: 'load-settings',
+            service: service
+          }
+        }, '*');
+      }
+
+      function generateConfigOptions(service) {
+        // This function will generate HTML based on the selected service
+        // For simplicity, we're just returning different inputs for each service
+        let optionsHtml = '';
+        switch (service) {
+          case 'AZURE_OPEN_AI':
+            optionsHtml = `
+          <label class="label">Azure Resource Name</label>
+          <input type="text" id="AZURE_OPEN_AI-resourceName" class="input-field" placeholder="Enter Resource Name" />
+          <label class="label">Azure Deployment Name</label>
+          <input type="text" id="AZURE_OPEN_AI-deploymentName" class="input-field" placeholder="Enter Deployment Name" />
+          <label class="label">Azure OpenAI APIKey</label>
+          <input type="password" id="AZURE_OPEN_AI-apiKey" class="input-field" placeholder="Enter API Key" />
+        `;
+            break;
+          case 'OPEN_AI':
+            optionsHtml = `
+          <label class="label">OpenAI Key</label>
+          <input type="password" id="OPEN_AI-apiKey" class="input-field" placeholder="Enter API Key \"SK-...\"" />
+      
+        `;
+            break;
+          case 'ANTHROPIC':
+            optionsHtml = `
+          <label class="label">Anthropic not supported yet</label>
+          <input type="password" id="ANTHROPIC-apiKey" class="input-field" placeholder="Enter API Key \"SK-...\"" />
+      
+        `;
+            break;
+          // Add more cases as needed
+        }
+        return optionsHtml;
+      }
+
       feather.replace();
+
+      let svgButton = document.getElementById("useRawSvgButton");
+      svgButton.addEventListener('click', () => {
+        // Check if button is active
+        svgButton.classList.toggle('active');
+        
+        // Update the dataset.useRawSvg based on the presence of the 'active' class
+        svgButton.dataset.useRawSvg = svgButton.classList.contains('active');
+        // Log the current state to the console (optional)
+  console.log(`Button active: ${svgButton.classList.contains('active')}`);
+  console.log(`useRawSvg: ${svgButton.dataset.useRawSvg}`);
+
+      });
+      
       document.getElementById('generate-layout').onclick = () => {
-        parent.postMessage({ pluginMessage: { type: 'generate-layout-instructions' } }, '*');
+        let useRawSvg = svgButton.classList.contains('active');
+        console.log(`generate-layout.onclick()::{ type: 'generate-layout-instructions', useRawSvg}`, { type: 'generate-layout-instructions', useRawSvg})
+        parent.postMessage({ pluginMessage: { type: 'generate-layout-instructions', useRawSvg} }, '*');
       }
 
       // Copy button event listener
       document.getElementById('copy-layout').onclick = () => {
         // Select the text field
-        const output = document.getElementById('output');
+        const output = document.getElementById('output-layout');
         output.select();
         output.setSelectionRange(0, 99999); // For mobile devices
 
@@ -368,80 +547,167 @@
         alert('Instructions copied to clipboard! You can put this straight into GPT or configure the API call in the extension and run it within our app!');
       };
 
+      function aiRequest(config, messages) {
+        let url;
+        let body;
+        let headers;
+        let apiKey;
+        switch (config.type) {
+          case "OPEN_AI":
+            console.log("aiRequest::document.getElementById(OPEN_AI-apiKey)", document.getElementById('OPEN_AI-apiKey'));
+            console.log("aiRequest::document.getElementById(OPEN_AI-apiKey)::value", document.getElementById('OPEN_AI-apiKey').value);
+            apiKey = document.getElementById('OPEN_AI-apiKey').value;
+            url = `https://api.openai.com/v1/chat/completions`;
+            body = {
+              model: "gpt-4-1106-preview",
+              messages: config.messages,
+              temperature: 0.3,
+              top_p: 0.3,
+              stream: true,
+              max_tokens: 4096
+            }
+            headers = {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization':  `Bearer ${apiKey}`
+            }
+            };
+            return { url, body, headers };
+            break;
+          case "AZURE_OPEN_AI":
+          console.log("aiRequest::document.getElementById(AZURE_OPEN_AI-resourceName)", document.getElementById('AZURE_OPEN_AI-resourceName'));
+            console.log("aiRequest::document.getElementById(AZURE_OPEN_AI-resourceName)::value", document.getElementById('AZURE_OPEN_AI-resourceName').value);
+            const resourceName = document.getElementById('AZURE_OPEN_AI-resourceName').value;
+            
+            
+            const deploymentName = document.getElementById('AZURE_OPEN_AI-deploymentName').value;
+            console.log("aiRequest::document.getElementById(AZURE_OPEN_AI-deploymentName)", document.getElementById('AZURE_OPEN_AI-deploymentName'));
+            console.log("aiRequest::document.getElementById(AZURE_OPEN_AI-deploymentName)::value", document.getElementById('AZURE_OPEN_AI-deploymentName').value);
+            
+            apiKey = document.getElementById('AZURE_OPEN_AI-apiKey').value;
+            console.log("aiRequest::document.getElementById(AZURE_OPEN_AI-apiKey)", document.getElementById('AZURE_OPEN_AI-apiKey'));
+            console.log("aiRequest::document.getElementById(AZURE_OPEN_AI-apiKey)::value", document.getElementById('AZURE_OPEN_AI-apiKey').value);
+            const apiVersion = '2023-07-01-preview';
+
+            // Construct the URL using template literals
+            url = `https://${resourceName}.openai.azure.com/openai/deployments/${deploymentName}/chat/completions?api-version=${apiVersion}`;
+            headers = {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'api-key': apiKey
+            }
+            };
+
+            // Define the data to be sent
+            body = {
+              messages: config.messages,
+              temperature: 0.3,
+              top_p: 0.3,
+              max_tokens: 20000,
+              stream: true
+            };
+            return { url, body, headers };
+            break;
+          case "ANTHROPIC":
+              break;
+
+        }
+
+        return { url, body, headers };
+      }
+
       document.getElementById('generate-ai').onclick = () => {
         // parent.postMessage({ pluginMessage: { type: 'generate-ai' } }, '*');
-        const resourceName = document.getElementById('resourceName').value;
-        const deploymentName = document.getElementById('deploymentName').value;
-        const apiKey = document.getElementById('apiKey').value;
-        const apiVersion = '2023-07-01-preview';
+        document.getElementById("output-ai").value = "";
+        let messages = [
+          { role: "system", content: "You are a brilliant frontend software engineer that takes in a highly detailed description of an app layout/component layout/ etc and generates full HTML CSS JS code in a single HTML page, you make it responsive by leveraging tailwindcss loaded via CDN, you follow the instructions set out by the user. You respond only in code, never preface anything with anything, just pure code. You make the dimensions as exact as possible, approximating with tailwind css sizes. You always generate responsive code implementing resizing like so: sm:, md:, lg:, xl:, 2xl: " },
+          // { role: "user", content: `#Button { "display": "flex", "width": "258.99px", "height": "64px", "justify-content": "center", "align-items": "center", "flex-shrink": "0", "border-radius": "20px", "background": "#FFF" } // Node name: ButtonLabel "Schedule Quiz" #Button:nth-child(1) { "color": "#7209B7", "font-family": "Poppins", "font-size": "20.519px", "font-style": "normal", "font-weight": "500", "line-height": "normal" } ` },
+          // { role: "assistant", content: `` },
+          // { role: "user", content: `` },
+          // { role: "assistant", content: `` },
+          { role: "user", content: `${document.getElementById("output-layout").value}` },
+        ]
 
-        // Construct the URL using template literals
-        const url = `https://${resourceName}.openai.azure.com/openai/deployments/${deploymentName}/chat/completions?api-version=${apiVersion}`;
+        let config = {
+          type: document.querySelector('.chip.active').dataset.service,
+          messages
+        }
 
-        // Define the data to be sent
-        const data = {
-          messages: [
-            { role: "system", content: "You are a helpful assistant." },
-            { role: "user", content: "Reply with 100 word text please :)" },
-          ],
-          temperature: 0.3,
-          top_p: 0.3,
-          max_tokens: 20000,
-          stream: true
-        };
-
-        fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'api-key': apiKey
-          },
-          body: JSON.stringify(data)
+        const { url, body, headers } = aiRequest(config);
+        console.log("aiRequest(config)::url", url);
+        console.log("aiRequest(config)::body", body);
+        console.log("aiRequest(config)::headers", headers);
+        console.log("req", {
+          method: headers.method,
+          headers: headers.headers,
+          body: JSON.stringify(body),
         })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder();
-          reader.read().then(function pump({ done, value }) {
-            if (done) {
-              // Do something with last chunk of data then exit reader
-              return;
+        let startPrinting = false;
+        fetch(url, {
+          method: headers.method,
+          headers: headers.headers,
+          body: JSON.stringify(body),
+        })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
             }
-            let chunk = decoder.decode(value);
-            let parts = chunk.split('\n'); // assuming newline-delimited JSON
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            
+            reader.read().then(function pump({ done, value }) {
+              if (done) {
+                // Do something with last chunk of data then exit reader
+                return;
+              }
+              let chunk = decoder.decode(value);
+              let parts = chunk.split('\n'); // assuming newline-delimited JSON
+              
+              if(startPrinting)
+                console.log(chunk);
+              parts.forEach(part => {
+                if (part) {
+                  // console.log(part);
+                  // part comes in the form "data: <JSON HERE>", so we ignore first 6 chars
+                  let data = part.slice(6);
+                  if (!data.includes("[DONE]")) {
+                    let json = undefined;
+                    try {
+                      json = JSON.parse(data);
+                    }
+                    catch {
+                      startPrinting = true;
+                      console.error(part, "was not valid json");
+                    }
+                    if (json && json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content) {
+                      let textarea = document.getElementById("output-ai");
+                      textarea.value += json.choices[0].delta.content;
 
-            parts.forEach(part => {
-              if (part) {
-                // part comes in the form "data: <JSON HERE>", so we ignore first 6 chars
-                let data = part.slice(6);
-                if (!data.includes("[DONE]"))
-                {
-                  const json = JSON.parse(data);
-                  if (json && json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content) {
-                    document.getElementById("output-ai").value += json.choices[0].delta.content;
+                      textarea.scrollTop = textarea.scrollHeight;
+
+                    }
                   }
                 }
-              }
+              });
+
+              // Read some more, and call this function again
+              return reader.read().then(pump);
             });
 
-            // Read some more, and call this function again
-            return reader.read().then(pump);
+          })
+          .catch(error => {
+            console.error('Fetch error:', error);
           });
 
-        })
-        .catch(error => {
-          console.error('Fetch error:', error);
-        });
-        
 
       }
 
       // Copy button event listener
       document.getElementById('copy-ai').onclick = () => {
         // Select the text field
-        const output = document.getElementById('output');
+        const output = document.getElementById('output-ai');
         output.select();
         output.setSelectionRange(0, 99999); // For mobile devices
 
@@ -453,91 +719,91 @@
       };
 
 
-      // Request the plugin to load settings when the UI is loaded
-      parent.postMessage({ pluginMessage: { type: 'load-settings' } }, '*');
+      // // Request the plugin to load settings when the UI is loaded
+      // parent.postMessage({ pluginMessage: { type: 'load-settings' } }, '*');
 
 
-    const textArea = document.getElementById('nodeInstruction');
-    textArea.addEventListener('input', function () {
-      const selectedNodeId = textArea.dataset.selectedNodeId;
-      if (selectedNodeId) {
-        // Save on each keystroke
-        parent.postMessage({
-          pluginMessage: {
-            type: 'save-node-config',
-            nodes: [{
-              node_id: selectedNodeId,
-              node_instructions: textArea.value
-            }]
-          }
-        }, '*');
+      const textArea = document.getElementById('nodeInstruction');
+      textArea.addEventListener('input', function () {
+        const selectedNodeId = textArea.dataset.selectedNodeId;
+        if (selectedNodeId) {
+          // Save on each keystroke
+          parent.postMessage({
+            pluginMessage: {
+              type: 'save-node-config',
+              nodes: [{
+                node_id: selectedNodeId,
+                node_instructions: textArea.value
+              }]
+            }
+          }, '*');
+        }
+      });
+
+
+
+      const modal = document.getElementById("myModal");
+      const btn = document.getElementById("fineTunePrompt");
+      const span = document.getElementsByClassName("close")[0];
+      const saveBtn = document.getElementById("saveNodeConfig");
+      btn.onclick = function () {
+        modal.style.display = "inline-block";
+        parent.postMessage({ pluginMessage: { type: 'get-nodes' } }, '*');
       }
-    });
-
-
-
-    const modal = document.getElementById("myModal");
-    const btn = document.getElementById("fineTunePrompt");
-    const span = document.getElementsByClassName("close")[0];
-    const saveBtn = document.getElementById("saveNodeConfig");
-    btn.onclick = function () {
-      modal.style.display = "inline-block";
-      parent.postMessage({ pluginMessage: { type: 'get-nodes' } }, '*');
-    }
-    span.onclick = function () {
-      modal.style.display = "none";
-      parent.postMessage({ pluginMessage: { type: 'close-modal' } }, '*');
-    }
-    window.onclick = function (event) {
-      if (event.target == modal) {
+      span.onclick = function () {
         modal.style.display = "none";
         parent.postMessage({ pluginMessage: { type: 'close-modal' } }, '*');
       }
-    }
-
-    function createNodeElement(nodeData, depth = 0) {
-      const nodeButton = document.createElement('div');
-      nodeButton.className = 'node-button';
-      nodeButton.textContent = nodeData.name;
-      nodeButton.style.paddingLeft = `${depth * 20}px`; // Increase padding for children
-      nodeButton.dataset.nodeId = nodeData.id;
-
-      // Click event to select a node
-      nodeButton.addEventListener('click', function (event) {
-        event.stopPropagation(); // Prevent triggering click events on parent elements
-        // Send message to the plugin to select the node
-        parent.postMessage({ pluginMessage: { type: 'select-node', node_id: nodeData.id } }, '*');
-        // Display the instruction for the selected node in the textarea
-        // const textArea = document.getElementById('nodeInstruction');
-        // textArea.value = nodeData.instruction;
-        // textArea.dataset.selectedNodeId = nodeData.id; // Store the selected node ID
-        textArea.value = "";
-        // Request the saved instruction for the selected node
-        parent.postMessage({ pluginMessage: { type: 'get-node-instruction', node_id: nodeData.id } }, '*');
-      });
-      return nodeButton;
-    }
-
-    
-      function appendNodeElements(nodeData, container, depth = 0) {
-      // Create the current node element
-      const nodeElement = createNodeElement(nodeData, depth);
-      container.appendChild(nodeElement);
-
-      // Recursively append child nodes
-      if (nodeData.children.length > 0) {
-        for (const childNode of nodeData.children) {
-          appendNodeElements(childNode, container, depth + 1);
+      window.onclick = function (event) {
+        if (event.target == modal) {
+          modal.style.display = "none";
+          parent.postMessage({ pluginMessage: { type: 'close-modal' } }, '*');
         }
       }
-    }
+
+      function createNodeElement(nodeData, depth = 0) {
+        const nodeButton = document.createElement('div');
+        nodeButton.className = 'node-button';
+        nodeButton.textContent = nodeData.name;
+        nodeButton.style.paddingLeft = `${depth * 20}px`; // Increase padding for children
+        nodeButton.dataset.nodeId = nodeData.id;
+
+        // Click event to select a node
+        nodeButton.addEventListener('click', function (event) {
+          event.stopPropagation(); // Prevent triggering click events on parent elements
+          // Send message to the plugin to select the node
+          parent.postMessage({ pluginMessage: { type: 'select-node', node_id: nodeData.id } }, '*');
+          // Display the instruction for the selected node in the textarea
+          // const textArea = document.getElementById('nodeInstruction');
+          // textArea.value = nodeData.instruction;
+          // textArea.dataset.selectedNodeId = nodeData.id; // Store the selected node ID
+          textArea.value = "";
+          // Request the saved instruction for the selected node
+          parent.postMessage({ pluginMessage: { type: 'get-node-instruction', node_id: nodeData.id } }, '*');
+        });
+        return nodeButton;
+      }
+
+
+      function appendNodeElements(nodeData, container, depth = 0) {
+        // Create the current node element
+        const nodeElement = createNodeElement(nodeData, depth);
+        container.appendChild(nodeElement);
+
+        // Recursively append child nodes
+        if (nodeData.children.length > 0) {
+          for (const childNode of nodeData.children) {
+            appendNodeElements(childNode, container, depth + 1);
+          }
+        }
+      }
 
       // Listen for messages sent from the plugin to the UI
       window.onmessage = event => {
         const pluginMessage = event.data.pluginMessage;
         if (pluginMessage.type === 'set-instructions') {
           // Set the text in the output box
-          document.getElementById('output').value = pluginMessage.instructions;
+          document.getElementById('output-layout').value = pluginMessage.instructions;
         }
 
         if (pluginMessage.type === 'set-openai') {
@@ -547,64 +813,91 @@
 
         if (pluginMessage.type === 'load-settings') {
           // If settings are received, set the input fields with these values
-          document.getElementById('resourceName').value = pluginMessage.configData.resourceName || 'unset';
-          document.getElementById('deploymentName').value = pluginMessage.configData.deploymentName || 'unset';
-          document.getElementById('apiKey').value = pluginMessage.configData.apiKey || 'unset';
+          // handle whatever chip is active and load their fields
+          // If settings are received, set the input fields with these values
+          const service = pluginMessage.service;
+          const configData = pluginMessage.configData;
+          console.log("pluginMessage::service",service);
+          console.log("pluginMessage::configData", configData);
+          // Find the active chip and make sure it matches the service we are loading settings for
+          const activeChip = document.querySelector('.chip.active[data-service="' + service + '"]');
+          if (activeChip) {
+            // If there is an active chip for the service, load settings into the input fields
+            for (const key in configData) {
+              /*
+              key will be either of:
+              AZURE_OPEN_AI-apiKey
+              AZURE_OPEN_AI-resourceName
+              AZURE_OPEN_AI-deploymentName
+
+              OPEN_AI-apiKey
+
+              ANTHROPIC-apiKey
+              */
+              const input = document.getElementById(key);
+              if (input) {
+                input.value = configData[key];
+              }
+            }
+          } else {
+            // If there isn't an active chip for the service, log an error or handle accordingly
+            console.error('Active chip does not match the service for which settings were loaded.');
+          }
         }
 
         if (pluginMessage.type === 'nodes-data') {
-        const nodeTree = document.getElementById("nodeTree");
-        nodeTree.innerHTML = ''; // Clear existing content
-        pluginMessage.data.forEach(nodeData => {
-          // Call the function with the root node data and depth 0
-          appendNodeElements(nodeData, nodeTree, 0);
-        });
+          const nodeTree = document.getElementById("nodeTree");
+          nodeTree.innerHTML = ''; // Clear existing content
+          pluginMessage.data.forEach(nodeData => {
+            // Call the function with the root node data and depth 0
+            appendNodeElements(nodeData, nodeTree, 0);
+          });
 
-        modal.style.display = "block";
-      }
-
-
-      if (pluginMessage.type === 'save-complete') {
-        console.log("saverino");
-      }
-
-      if (pluginMessage.type === 'node-instruction-data') {
-        const textArea = document.getElementById('nodeInstruction');
-        // Set the value of the text area to the instruction fetched from storage
-        textArea.value = pluginMessage.data.instruction || ''; // If there's no instruction, default to empty string
-        textArea.dataset.selectedNodeId = pluginMessage.data.node_id; // Store the selected node ID
-      }
+          modal.style.display = "block";
+        }
 
 
-      // more events from server here
+        if (pluginMessage.type === 'save-complete') {
+          console.log("saverino");
+        }
+
+        if (pluginMessage.type === 'node-instruction-data') {
+          const textArea = document.getElementById('nodeInstruction');
+          // Set the value of the text area to the instruction fetched from storage
+          textArea.value = pluginMessage.data.instruction || ''; // If there's no instruction, default to empty string
+          textArea.dataset.selectedNodeId = pluginMessage.data.node_id; // Store the selected node ID
+        }
+
+
+        // more events from server here
 
       };
 
 
-      document.getElementById('save').onclick = () => {
-        // Get the values from the input fields
-        const configData = {
-          resourceName: document.getElementById('resourceName').value,
-          deploymentName: document.getElementById('deploymentName').value,
-          apiKey: document.getElementById('apiKey').value
-        };
+      // document.getElementById('save').onclick = () => {
+      //   // Get the values from the input fields
+      //   const configData = {
+      //     resourceName: document.getElementById('resourceName').value,
+      //     deploymentName: document.getElementById('deploymentName').value,
+      //     apiKey: document.getElementById('apiKey').value
+      //   };
 
-        // Send the values to the main plugin code to save
-        parent.postMessage({ pluginMessage: { type: 'save-settings', configData } }, '*');
-      };
+      //   // Send the values to the main plugin code to save
+      //   parent.postMessage({ pluginMessage: { type: 'save-settings', configData } }, '*');
+      // };
 
       saveBtn.onclick = function () {
-      const selectedNodeId = textArea.dataset.selectedNodeId;
-      // Push only the selected node and its instructions
-      if (selectedNodeId) {
-        let nodes = [{
-          node_id: selectedNodeId,
-          node_instructions: textArea.value
-        }];
-        // Post the message with the selected node's instructions
-        parent.postMessage({ pluginMessage: { type: 'save-node-config', nodes } }, '*');
+        const selectedNodeId = textArea.dataset.selectedNodeId;
+        // Push only the selected node and its instructions
+        if (selectedNodeId) {
+          let nodes = [{
+            node_id: selectedNodeId,
+            node_instructions: textArea.value
+          }];
+          // Post the message with the selected node's instructions
+          parent.postMessage({ pluginMessage: { type: 'save-node-config', nodes } }, '*');
+        }
       }
-    }
     </script>
   </body>
 
