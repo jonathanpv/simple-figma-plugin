@@ -66,6 +66,7 @@
         margin-top: 20px;
         width: 100%;
       }
+
       .button.hidden {
         display: none;
       }
@@ -88,10 +89,10 @@
 
       /* Thisx will apply when the button has the 'active' class added to it */
       .button.active {
-          /* Styles for when the button is in the 'active' state */
-          background-color: var(--button-active-color);
-          box-shadow: none;
-          transform: translateY(0);
+        /* Styles for when the button is in the 'active' state */
+        background-color: var(--button-active-color);
+        box-shadow: none;
+        transform: translateY(0);
       }
 
       .icon-button {
@@ -102,7 +103,7 @@
         font-size: 14px;
         width: auto;
         /* Adjust width as needed, or remove it to let the content define the size */
-        
+
         /* Adjust height as needed */
       }
 
@@ -296,13 +297,13 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        font-size:small;
+        font-size: small;
         border-radius: 5px;
         box-shadow: 0 0 0 2px var(--button-color);
         /* font-weight: 400; */
         /* padding:5px; */
         transition: background-color 250ms ease, box-shadow 250ms ease;
-        
+
         /* Adjusted padding */
         cursor: pointer;
         margin-top: 20px;
@@ -356,7 +357,7 @@
           <button id="copy-layout" class="button icon-button">
             <i data-feather="copy"></i>
           </button>
-          
+
         </div>
       </div>
 
@@ -518,19 +519,19 @@
       svgButton.addEventListener('click', () => {
         // Check if button is active
         svgButton.classList.toggle('active');
-        
+
         // Update the dataset.useRawSvg based on the presence of the 'active' class
         svgButton.dataset.useRawSvg = svgButton.classList.contains('active');
         // Log the current state to the console (optional)
-  console.log(`Button active: ${svgButton.classList.contains('active')}`);
-  console.log(`useRawSvg: ${svgButton.dataset.useRawSvg}`);
+        console.log(`Button active: ${svgButton.classList.contains('active')}`);
+        console.log(`useRawSvg: ${svgButton.dataset.useRawSvg}`);
 
       });
-      
+
       document.getElementById('generate-layout').onclick = () => {
         let useRawSvg = svgButton.classList.contains('active');
-        console.log(`generate-layout.onclick()::{ type: 'generate-layout-instructions', useRawSvg}`, { type: 'generate-layout-instructions', useRawSvg})
-        parent.postMessage({ pluginMessage: { type: 'generate-layout-instructions', useRawSvg} }, '*');
+        console.log(`generate-layout.onclick()::{ type: 'generate-layout-instructions', useRawSvg}`, { type: 'generate-layout-instructions', useRawSvg })
+        parent.postMessage({ pluginMessage: { type: 'generate-layout-instructions', useRawSvg } }, '*');
       }
 
       // Copy button event listener
@@ -570,21 +571,21 @@
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization':  `Bearer ${apiKey}`
-            }
+                'Authorization': `Bearer ${apiKey}`
+              }
             };
             return { url, body, headers };
             break;
           case "AZURE_OPEN_AI":
-          console.log("aiRequest::document.getElementById(AZURE_OPEN_AI-resourceName)", document.getElementById('AZURE_OPEN_AI-resourceName'));
+            console.log("aiRequest::document.getElementById(AZURE_OPEN_AI-resourceName)", document.getElementById('AZURE_OPEN_AI-resourceName'));
             console.log("aiRequest::document.getElementById(AZURE_OPEN_AI-resourceName)::value", document.getElementById('AZURE_OPEN_AI-resourceName').value);
             const resourceName = document.getElementById('AZURE_OPEN_AI-resourceName').value;
-            
-            
+
+
             const deploymentName = document.getElementById('AZURE_OPEN_AI-deploymentName').value;
             console.log("aiRequest::document.getElementById(AZURE_OPEN_AI-deploymentName)", document.getElementById('AZURE_OPEN_AI-deploymentName'));
             console.log("aiRequest::document.getElementById(AZURE_OPEN_AI-deploymentName)::value", document.getElementById('AZURE_OPEN_AI-deploymentName').value);
-            
+
             apiKey = document.getElementById('AZURE_OPEN_AI-apiKey').value;
             console.log("aiRequest::document.getElementById(AZURE_OPEN_AI-apiKey)", document.getElementById('AZURE_OPEN_AI-apiKey'));
             console.log("aiRequest::document.getElementById(AZURE_OPEN_AI-apiKey)::value", document.getElementById('AZURE_OPEN_AI-apiKey').value);
@@ -597,7 +598,7 @@
               headers: {
                 'Content-Type': 'application/json',
                 'api-key': apiKey
-            }
+              }
             };
 
             // Define the data to be sent
@@ -611,7 +612,7 @@
             return { url, body, headers };
             break;
           case "ANTHROPIC":
-              break;
+            break;
 
         }
 
@@ -656,17 +657,55 @@
             }
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
-            
+            let previousPart = "";
             reader.read().then(function pump({ done, value }) {
               if (done) {
                 // Do something with last chunk of data then exit reader
+                console.log("last chunk of data");
                 return;
               }
               let chunk = decoder.decode(value);
               let parts = chunk.split('\n'); // assuming newline-delimited JSON
-              
-              if(startPrinting)
-                console.log(chunk);
+              let failed = false;
+              try {
+                JSON.parse(parts[0].slice(6));
+
+              } catch (error) {
+                failed = true;
+                console.error("Caught error trying to parse JSON for part:\n\n\n", parts[0].slice(6));
+              }
+
+              if (failed) {
+                try {
+                  let concat = ""
+                  if (previousPart != "") {
+                    console.log("\n\n\n:::::::: previousPart ::::::::\n\n\n", previousPart);
+                    console.log("\n\n\n:::::::: parts[0] :::::::::::::\n\n\n", parts[0]);
+                    
+                    let latestPart = parts[0].slice(6);
+                    let prevPart = previousPart.slice(6);
+
+                    if (!parts[0].startsWith("data: ")) {
+                      latestPart = parts[0];
+                    }
+                    
+                    if (!previousPart.startsWith("data: ")) {
+                      prevPart = previousPart;
+                    }
+                    concat = prevPart + latestPart;
+                    
+                    console.log(`\n\n\n:::::::: concat ::::::::\n\n\n${concat}\n\n\n`);
+                    JSON.parse(concat);
+                    parts[0] = "data: " + concat;
+                    previousPart = "";
+                  }
+                } catch {
+                  console.error("Concatenation did not result in valid JSON. Keeping previous part for next attempt.");
+
+                }
+              }
+
+
               parts.forEach(part => {
                 if (part) {
                   // console.log(part);
@@ -679,7 +718,8 @@
                     }
                     catch {
                       startPrinting = true;
-                      console.error(part, "was not valid json");
+                      console.error("\n\n\nERROR WHILE PARSING PART\n\n\n", part);
+                      previousPart = part;
                     }
                     if (json && json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content) {
                       let textarea = document.getElementById("output-ai");
@@ -817,7 +857,7 @@
           // If settings are received, set the input fields with these values
           const service = pluginMessage.service;
           const configData = pluginMessage.configData;
-          console.log("pluginMessage::service",service);
+          console.log("pluginMessage::service", service);
           console.log("pluginMessage::configData", configData);
           // Find the active chip and make sure it matches the service we are loading settings for
           const activeChip = document.querySelector('.chip.active[data-service="' + service + '"]');
