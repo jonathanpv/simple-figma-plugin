@@ -427,6 +427,7 @@
     </div>
     <script src="https://unpkg.com/feather-icons"></script>
     <script>
+      var SVGS = {};
       function updateConfig() {
         // Collect configuration from the input fields
         console.log("in updateConfig()");
@@ -660,8 +661,26 @@
             let previousPart = "";
             reader.read().then(function pump({ done, value }) {
               if (done) {
-                // Do something with last chunk of data then exit reader
-                console.log("last chunk of data");
+                const output = document.getElementById('output-ai');
+                let content = output.value; // Initialize content variable with the textarea value
+                
+                // Now that content is defined, you can log it
+                // console.log(":::::::::::: REPLACING :::::::::::\n\n\nCONTENT:\n\n\n", content);
+
+                Object.keys(SVGS).forEach((key) => {
+                    const regex = new RegExp(`${key}`, 'g');
+                    content = content.replace(regex, SVGS[key]);
+                });
+
+                // console.log(":::::::::::: IS NOW :::::::::::\n\n\nCONTENT:\n\n\n", content);
+                output.value = content; // Update the textarea with the new content
+                
+
+                // Alert the copied text
+                alert('Instructions copied to clipboard! You can put this straight into GPT or configure the API call in the extension and run it within our app!');
+                SVGS = {};
+
+
                 return;
               }
               let chunk = decoder.decode(value);
@@ -740,14 +759,13 @@
           .catch(error => {
             console.error('Fetch error:', error);
           });
-
-
       }
 
       // Copy button event listener
       document.getElementById('copy-ai').onclick = () => {
         // Select the text field
         const output = document.getElementById('output-ai');
+        
         output.select();
         output.setSelectionRange(0, 99999); // For mobile devices
 
@@ -756,6 +774,7 @@
 
         // Alert the copied text
         alert('Instructions copied to clipboard! You can put this straight into GPT or configure the API call in the extension and run it within our app!');
+        
       };
 
 
@@ -844,6 +863,7 @@
         if (pluginMessage.type === 'set-instructions') {
           // Set the text in the output box
           document.getElementById('output-layout').value = pluginMessage.instructions;
+          SVGS = pluginMessage.svgs;
         }
 
         if (pluginMessage.type === 'set-openai') {

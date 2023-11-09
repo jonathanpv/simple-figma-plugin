@@ -18,6 +18,7 @@ figma.showUI(__html__, { width: 500, height: 700 });
 
 
 let initialSelection = [...figma.currentPage.selection];
+let svgs = {};
 
 async function deleteAllFigmaClientStorageValues() {
   try {
@@ -40,7 +41,7 @@ async function deleteAllFigmaClientStorageValues() {
 
 function generateTempIcon(node: SceneNode) {
   let svg = `<svg height="${node.height}" width="${node.width}">
-  <ellipse cx="${node.width / 2}" cy="${node.height / 2}" rx="${(node.width / 2.4)}" ry="${(node.height / 2.4)}" style="fill:yellow;stroke:purple;stroke-width:2" />
+  <rect width="${node.width}" height="${node.height}" style="fill:grey;" />
  </svg>`
   return svg;
 }
@@ -86,7 +87,8 @@ async function getNodeCSS(node: SceneNode, selector, useRawSvg) {
 
 
     if (useRawSvg) {
-      svg = await node.exportAsync({ format: 'SVG_STRING' });
+      svgs[`{{${node.id}}}`] = await node.exportAsync({ format: 'SVG_STRING' });
+      svg = `Please use this keyword when using the SVG, place it within the HTML you generate and ignore the syntax rule in the meantime, I will replace it with regex later: {{${node.id}}} example: instead of <svg>...</svg> do {{${node.id}}} inside the HTML, yes I know it's not valid syntax but do it please.`;
     } else {
       svg = generateTempIcon(node);
     }
@@ -229,7 +231,7 @@ figma.ui.onmessage = async msg => {
   }
 
   if (msg.type === 'update-configuration') {
-    console.log('update-settigns plugin', msg.service, msg.configData);
+    console.log('update-settings plugin', msg.service, msg.configData);
     // Perform update logic here
     figma.ui.postMessage({
       type: 'configuration-updated',
@@ -244,6 +246,7 @@ figma.ui.onmessage = async msg => {
 
   if (msg.type === 'generate-layout-instructions') {
     console.log("generate-layout-instructions msg::", msg);
+    
     for (const node of figma.currentPage.selection) {
 
       if (selection.length === 0) {
@@ -265,8 +268,10 @@ figma.ui.onmessage = async msg => {
 
     figma.ui.postMessage({
       type: 'set-instructions',
-      instructions: cssString
+      instructions: cssString,
+      svgs
     });
+    svgs = {};
   }
 
   if (msg.type === 'generate-ai') {
@@ -321,11 +326,6 @@ figma.ui.onmessage = async msg => {
         console.error('Error:', error);
       });
 
-    // fetch('https://jsonplaceholder.typicode.com/posts/1')
-    //   .then(res => res.json())
-    //   .then(data => {
-
-    //   });
   }
 
 
