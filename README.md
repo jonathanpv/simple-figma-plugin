@@ -1,40 +1,28 @@
-Below are the steps to get your plugin running. You can also find instructions at:
+## AutoDesign Figma
+Prompt engineer your figma design and get a better output when compared to most ai to figma tools.
 
-  https://www.figma.com/plugin-docs/plugin-quickstart-guide/
 
-This plugin template uses Typescript and NPM, two standard tools in creating JavaScript applications.
+https://github.com/jonathanpv/simple-figma-plugin/assets/44036128/a9f54032-42c3-4ea4-a027-4853c6c1a4d7
 
-First, download Node.js which comes with NPM. This will allow you to install TypeScript and other
-libraries. You can find the download link here:
 
-  https://nodejs.org/en/download/
+## Installation
+1. Clone repo
+2. Open a figma file, right click, plugins > development, import plugin from manifest, navigate to manifest.json of this repo
+3. npm i 
+4. npm run watch
 
-Next, install TypeScript using the command:
 
-  npm install -g typescript
+## Features
+- Fine tune on a layer by layer basis, Figma will likely implement this themselves so this feature will eventually be obsolete
+- Get the description recrusively for the component / app you have selected, you can paste to chatgpt directly or use the api key
+- Use the SVG strings in the final output of your app render
 
-Finally, in the directory of your plugin, get the latest type definitions for the plugin API by running:
+## Work in progress
+- Make an agent iterate on the code using OpenAI vision API
+- Display preview of generated site within extension, either iframe or a new button click
+- Make agent accessible via API and integrate within plugin
 
-  npm install --save-dev @figma/plugin-typings
+## License
+MIT
 
-If you are familiar with JavaScript, TypeScript will look very familiar. In fact, valid JavaScript code
-is already valid Typescript code.
 
-TypeScript adds type annotations to variables. This allows code editors such as Visual Studio Code
-to provide information about the Figma API while you are writing code, as well as help catch bugs
-you previously didn't notice.
-
-For more information, visit https://www.typescriptlang.org/
-
-Using TypeScript requires a compiler to convert TypeScript (code.ts) into JavaScript (code.js)
-for the browser to run.
-
-We recommend writing TypeScript code using Visual Studio code:
-
-1. Download Visual Studio Code if you haven't already: https://code.visualstudio.com/.
-2. Open this directory in Visual Studio Code.
-3. Compile TypeScript to JavaScript: Run the "Terminal > Run Build Task..." menu item,
-    then select "npm: watch". You will have to do this again every time
-    you reopen Visual Studio Code.
-
-That's it! Visual Studio Code will regenerate the JavaScript file every time you save.
